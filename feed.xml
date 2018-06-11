@@ -1,0 +1,960 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>GakuBlog</title>
+  <subtitle>技術的な備忘録</subtitle>
+  <id>http://gakublog.fam.cx</id>
+  <link href="http://gakublog.fam.cx"/>
+  <link href="http://gakublog.fam.cx/feed.xml" rel="self"/>
+  <updated>2017-08-01T02:08:00Z</updated>
+  <author>
+    <name>Gaku</name>
+  </author>
+  <entry>
+    <title>CentOS7でLDAP</title>
+    <link rel="alternate" href="http://gakublog.fam.cx/2017/08/01/centos7_ldap/"/>
+    <id>http://gakublog.fam.cx/2017/08/01/centos7_ldap/</id>
+    <published>2017-08-01T02:08:00Z</published>
+    <updated>2018-06-11T17:35:37+09:00</updated>
+    <author>
+      <name>Article Author</name>
+    </author>
+    <content type="html">&lt;p&gt;centosにOpenLDAPを導入する&lt;/p&gt;
+
+&lt;h3&gt;LDAPとは&lt;/h3&gt;
+
+&lt;p&gt;ネットワーク機器やユーザーなどの情報を管理するディレクトリサービスへ接続するためのプロトコル。&lt;/p&gt;
+
+&lt;p&gt;今回構築する目的は自宅サーバー群のID・パスワードの管理を容易に行えるようにするため&lt;/p&gt;
+
+&lt;p&gt;OpenLDAPを導入する前にOpenLDAPが利用するプロトコルへの接続を許可する&lt;/p&gt;
+
+&lt;h3&gt;firewallの設定&lt;/h3&gt;
+
+&lt;h4&gt;ldap(389) ldaps(686)のアクセスを許可する&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; firewall-cmd &lt;span class="nt"&gt;--add-service&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;ldap &lt;span class="nt"&gt;--zone&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;public &lt;span class="nt"&gt;--permanent&lt;/span&gt;
+&lt;span class="go"&gt;success
+&lt;/span&gt;&lt;span class="gp"&gt;#&lt;/span&gt; firewall-cmd &lt;span class="nt"&gt;--add-service&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;ldaps &lt;span class="nt"&gt;--zone&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;public &lt;span class="nt"&gt;--permanent&lt;/span&gt;
+&lt;span class="go"&gt;success
+&lt;/span&gt;&lt;span class="gp"&gt;#&lt;/span&gt; firewall-cmd &lt;span class="nt"&gt;--reload&lt;/span&gt;
+&lt;span class="go"&gt;success
+
+&lt;/span&gt;&lt;span class="gp"&gt;#&lt;/span&gt; firewall-cmd &lt;span class="nt"&gt;--list-all&lt;/span&gt;
+&lt;span class="go"&gt;public (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: ens160
+  sources:
+  services: dhcpv6-client ldap ldaps ssh
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  sourceports:
+  icmp-blocks:
+  rich rules:
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;OpenLDAPのインストール&lt;/h3&gt;
+
+&lt;h4&gt;OpenLDAPのインストールをする&lt;/h4&gt;
+
+&lt;p&gt;(横に長いので一部編集)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; yum &lt;span class="nt"&gt;-y&lt;/span&gt; install openldap openldap-clients openldap-servers
+&lt;span class="go"&gt;
+読み込んだプラグイン:fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: ftp.iij.ad.jp
+ * extras: ftp.iij.ad.jp
+ * updates: ftp.iij.ad.jp
+パッケージ openldap-2.4.40-13.el7.x86_64 はインストール済みか最新バージョンです
+依存性の解決をしています
+&lt;/span&gt;&lt;span class="gp"&gt;--&amp;gt;&lt;/span&gt; トランザクションの確認を実行しています。
+&lt;span class="gp"&gt;---&amp;gt;&lt;/span&gt; パッケージ openldap-clients.x86_64 0:2.4.40-13.el7 を インストール
+&lt;span class="gp"&gt;---&amp;gt;&lt;/span&gt; パッケージ openldap-servers.x86_64 0:2.4.40-13.el7 を インストール
+&lt;span class="gp"&gt;--&amp;gt;&lt;/span&gt; 依存性の処理をしています: libltdl.so.7&lt;span class="o"&gt;()(&lt;/span&gt;64bit&lt;span class="o"&gt;)&lt;/span&gt; のパッケージ: openldap-servers-2.4.40-13.el7.x86_64
+&lt;span class="gp"&gt;--&amp;gt;&lt;/span&gt; トランザクションの確認を実行しています。
+&lt;span class="gp"&gt;---&amp;gt;&lt;/span&gt; パッケージ libtool-ltdl.x86_64 0:2.4.2-22.el7_3 を インストール
+&lt;span class="gp"&gt;--&amp;gt;&lt;/span&gt; 依存性解決を終了しました。
+&lt;span class="go"&gt;
+依存性を解決しました
+
+============================================================================================
+ Package                                アーキテクチャー  バージョン     リポジトリー  容量
+============================================================================================
+インストール中:
+ openldap-clients                       x86_64            2.4.40-13.el7  base         188 k
+ openldap-servers                       x86_64            2.4.40-13.el7  base         2.1 M
+依存性関連でのインストールをします:
+ libtool-ltdl                           x86_64            2.4.2-22.el7_3 updates       49 k
+
+トランザクションの要約
+============================================================================================
+インストール  2 パッケージ (+1 個の依存関係のパッケージ)
+
+総ダウンロード容量: 2.4 M
+インストール容量: 5.3 M
+Downloading packages:
+(1/3): libtool-ltdl-2.4.2-22.el7_3.x86_64.rpm                           |  49 kB  00:00:00
+(2/3): openldap-clients-2.4.40-13.el7.x86_64.rpm                        | 188 kB  00:00:00
+(3/3): openldap-servers-2.4.40-13.el7.x86_64.rpm                        | 2.1 MB  00:00:00
+---------------------------------------------------------------------------------------------
+合計                                                                     8.1 MB/s | 2.4 MB  00:00:00
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  インストール中          : libtool-ltdl-2.4.2-22.el7_3.x86_64                  1/3
+  インストール中          : openldap-servers-2.4.40-13.el7.x86_64               2/3
+  インストール中          : openldap-clients-2.4.40-13.el7.x86_64               3/3
+  検証中                  : libtool-ltdl-2.4.2-22.el7_3.x86_64                  1/3
+  検証中                  : openldap-clients-2.4.40-13.el7.x86_64               2/3
+  検証中                  : openldap-servers-2.4.40-13.el7.x86_64               3/3
+
+インストール:
+  openldap-clients.x86_64 0:2.4.40-13.el7                 openldap-servers.x86_64 0:2.4.40-13.el7
+
+依存性関連をインストールしました:
+  libtool-ltdl.x86_64 0:2.4.2-22.el7_3
+
+完了しました!
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;DB設定をサンプルからコピーする&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;# cp -p /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;システム起動時に自動的に起動するようにする&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; systemctl &lt;span class="nb"&gt;enable &lt;/span&gt;slapd
+&lt;span class="go"&gt;Created symlink from /etc/systemd/system/multi-user.target.wants/slapd.service to /usr/lib/systemd/system/slapd.service.
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;サービス起動&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;systemctl start  slapd
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;起動確認&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;# systemctl status slapd
+● slapd.service - OpenLDAP Server Daemon
+   Loaded: loaded (/usr/lib/systemd/system/slapd.service; enabled; vendor preset: disabled)
+   Active: active (running) since 火 2017-08-01 11:30:38 JST; 32s ago
+     Docs: man:slapd
+           man:slapd-config
+           man:slapd-hdb
+           man:slapd-mdb
+           file:///usr/share/doc/openldap-servers/guide.html
+  Process: 11697 ExecStart=/usr/sbin/slapd -u ldap -h ${SLAPD_URLS} $SLAPD_OPTIONS (code=exited, status=0/SUCCESS)
+  Process: 11682 ExecStartPre=/usr/libexec/openldap/check-config.sh (code=exited, status=0/SUCCESS)
+ Main PID: 11699 (slapd)
+   CGroup: /system.slice/slapd.service
+           └─11699 /usr/sbin/slapd -u ldap -h ldapi:/// ldap:///
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;slapd.dデータの編集&lt;/h2&gt;
+
+&lt;h4&gt;作業用ディレクトリ作成&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;# cd ~
+# mkdir ~/ldap_work
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;パスワードを生成する&lt;/h4&gt;
+
+&lt;p&gt;ソルト付きSSHAな為生成ごとに異なる&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; slappasswd
+&lt;span class="go"&gt;New password:
+Re-enter new password:
+{SSHA}sWdvM8tQw3JomdNrpQSM3IEYUn6pDBis
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;configデータベースのRootユーザのパスワードを変更する&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; vi ~/ldap_work/add_rootPw.ldif
+&lt;span class="go"&gt;dn: olcDatabase={0}config,cn=config
+changetype: modify
+add: olcRootPW
+olcRootPW: {SSHA}sWdvM8tQw3JomdNrpQSM3IEYUn6pDBis
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;ldapaddコマンドで、add_rootPw.ldifの内容と登録する&lt;/h4&gt;
+
+&lt;p&gt;-Y EXTERNALとをつけることでローカル環境からパスワード無しでコマンドを実行できる&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; ldapadd &lt;span class="nt"&gt;-Y&lt;/span&gt; EXTERNAL &lt;span class="nt"&gt;-H&lt;/span&gt; ldapi:// &lt;span class="nt"&gt;-f&lt;/span&gt; ~/ldap_work/add_rootPw.ldif
+&lt;span class="go"&gt;SASL/EXTERNAL authentication started
+SASL username: gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth
+SASL SSF: 0
+modifying entry "olcDatabase={0}config,cn=config"
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;LDAPベースエントリの変更&lt;/h3&gt;
+
+&lt;h4&gt;インストール直後のベースDNはmy-domain,dc=comとなっている為変更する&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; vi ~/ldap_work/change-domain.ldif
+&lt;span class="go"&gt;dn: olcDatabase={1}monitor,cn=config
+changetype: modify
+replace: olcAccess
+olcAccess: {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth"
+  read by dn.base="cn=Manager,dc=example,dc=com" read by * none
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+replace: olcSuffix
+olcSuffix: dc=example,dc=com
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+replace: olcRootDN
+olcRootDN: cn=Manager,dc=example,dc=com
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+add: olcRootPW
+olcRootPW: {SSHA}sWdvM8tQw3JomdNrpQSM3IEYUn6pDBis
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;流し込む&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; ldapmodify &lt;span class="nt"&gt;-x&lt;/span&gt; &lt;span class="nt"&gt;-D&lt;/span&gt; &lt;span class="nv"&gt;cn&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;config &lt;span class="nt"&gt;-W&lt;/span&gt; &lt;span class="nt"&gt;-f&lt;/span&gt; ~/ldap_work/change-domain.ldif
+&lt;span class="go"&gt;Enter LDAP Password:
+modifying entry "olcDatabase={1}monitor,cn=config"
+
+modifying entry "olcDatabase={2}hdb,cn=config"
+
+modifying entry "olcDatabase={2}hdb,cn=config"
+
+modifying entry "olcDatabase={2}hdb,cn=config"
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;ベースエントリを登録する&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; vi ~/ldap_work/base.ldif
+&lt;span class="go"&gt;dn: dc=example,dc=com
+objectClass: dcObject
+objectClass: organization
+dc: example
+o: Example Inc.
+
+dn: ou=People,dc=example,dc=com
+objectClass: organizationalUnit
+ou: People
+
+dn: ou=Group,dc=example,dc=com
+objectClass: organizationalUnit
+ou: Group
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;流し込む&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; ldapadd &lt;span class="nt"&gt;-x&lt;/span&gt; &lt;span class="nt"&gt;-D&lt;/span&gt; &lt;span class="s2"&gt;"cn=Manager,dc=example,dc=com"&lt;/span&gt; &lt;span class="nt"&gt;-W&lt;/span&gt; &lt;span class="nt"&gt;-f&lt;/span&gt; ~/ldap_work/base.ldif
+&lt;span class="go"&gt;Enter LDAP Password:
+adding new entry "dc=example,dc=com"
+
+adding new entry "ou=People,dc=example,dc=com"
+
+adding new entry "ou=Group,dc=example,dc=com"
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;グループエントリを登録する&lt;/h3&gt;
+
+&lt;p&gt;作業用フォルダを作成する&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;# mkdir ~/ldap_work/ldif
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;エントリ用ファイルを作成する&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; vi ~/ldap_work/ldif/group.ldif
+&lt;span class="go"&gt;dn: cn=system,ou=Group,dc=example,dc=com
+objectClass: posixGroup
+objectClass: top
+cn: system
+gidNumber: 1000
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;このまま登録しようとするとエラーがでる&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;ldap_add: Invalid syntax (21)
+    additional info: objectClass: value #0 invalid per syntax
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;原因は下記URLに書いてある&lt;br/&gt;
+&lt;a href="http://l-w-i.net/t/openldap/ldapadd_100.txt"&gt;http://l-w-i.net/t/openldap/ldapadd_100.txt&lt;/a&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;LDIFファイル内のobjectClassで指定したクラス名が誤っている。
+LDIFファイル内のobjectClassで指定したクラスが定義されているスキーマファイルをslapd.confでincludeしていない。
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;OLCになったことによりslapd.confにincludeする代わりにcn=configにschemaを追加する様になった&lt;br/&gt;
+初期状態ではcoreのみがinclude入っている&lt;br/&gt;
+UserとGroupに必要なのはposixGroup posixAccountなので&lt;br/&gt;
+&lt;code&gt;/etc/openldap/schema/nis.ldif&lt;/code&gt; を追加する必要があるが&lt;br/&gt;
+&lt;code&gt;/etc/openldap/schema/nis.ldif&lt;/code&gt;でmanegerがないと言われるので先に&lt;code&gt;/etc/openldap/schema/cosine.ldif&lt;/code&gt;を入れてからnisを入れる&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; ldapadd &lt;span class="nt"&gt;-x&lt;/span&gt; &lt;span class="nt"&gt;-W&lt;/span&gt; &lt;span class="nt"&gt;-D&lt;/span&gt; &lt;span class="nv"&gt;cn&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;config &lt;span class="nt"&gt;-f&lt;/span&gt; /etc/openldap/schema/cosine.ldif
+&lt;span class="go"&gt;Enter LDAP Password:
+adding new entry "cn=cosine,cn=schema,cn=config"
+&lt;/span&gt;&lt;span class="gp"&gt;#&lt;/span&gt; ldapadd &lt;span class="nt"&gt;-x&lt;/span&gt; &lt;span class="nt"&gt;-W&lt;/span&gt; &lt;span class="nt"&gt;-D&lt;/span&gt; &lt;span class="nv"&gt;cn&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;config &lt;span class="nt"&gt;-f&lt;/span&gt; /etc/openldap/schema/nis.ldif
+&lt;span class="go"&gt;Enter LDAP Password:
+adding new entry "cn=nis,cn=schema,cn=config"
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;問題なく登録されたらグループエントリを登録する&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; ldapadd &lt;span class="nt"&gt;-x&lt;/span&gt; &lt;span class="nt"&gt;-D&lt;/span&gt; &lt;span class="s2"&gt;"cn=Manager,dc=example,dc=com"&lt;/span&gt; &lt;span class="nt"&gt;-W&lt;/span&gt; &lt;span class="nt"&gt;-f&lt;/span&gt; ~/ldap_work/ldif/group.ldif
+&lt;span class="go"&gt;Enter LDAP Password:
+adding new entry "cn=system,ou=Group,dc=example,dc=com"
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;ユーザーエントリを登録する&lt;/h3&gt;
+
+&lt;p&gt;ユーザー用のパスワードを作成する&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; slappasswd
+&lt;span class="go"&gt;New password:
+Re-enter new password:
+{SSHA}MQKO56JaZKzcIPTLk305Nx/29YQcZgX6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;hogeユーザー用エントリファイルを作成する&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; vi ~/ldap_work/ldif/user.ldif
+&lt;span class="go"&gt;dn: uid=hoge,ou=People,dc=example,dc=com
+objectClass: shadowAccount
+objectClass: posixAccount
+objectClass: account
+objectClass: top
+cn: HogeHoge
+uid: hoge
+uidNumber: 1001
+gidNumber: 1000
+homeDirectory: /home/
+loginShell: /bin/bash
+shadowMin: 0
+shadowMax: 99999
+shadowWarning: 7
+shadowLastChange: 16175
+userPassword: {SSHA}MQKO56JaZKzcIPTLk305Nx/29YQcZgX6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;流し込む&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight console"&gt;&lt;code&gt;&lt;span class="gp"&gt;#&lt;/span&gt; ldapadd &lt;span class="nt"&gt;-x&lt;/span&gt; &lt;span class="nt"&gt;-D&lt;/span&gt; &lt;span class="s2"&gt;"cn=Manager,dc=example,dc=com"&lt;/span&gt; &lt;span class="nt"&gt;-W&lt;/span&gt; &lt;span class="nt"&gt;-f&lt;/span&gt; ~/ldap_work/ldif/user.ldif
+&lt;span class="go"&gt;Enter LDAP Password:
+adding new entry "cn=system,ou=Group,dc=example,dc=com"
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content>
+  </entry>
+  <entry>
+    <title>OSSGateワークショップに参加した感想</title>
+    <link rel="alternate" href="http://gakublog.fam.cx/2016/09/26/ossgate/"/>
+    <id>http://gakublog.fam.cx/2016/09/26/ossgate/</id>
+    <published>2016-09-26T06:19:00Z</published>
+    <updated>2018-06-11T17:35:37+09:00</updated>
+    <author>
+      <name>Article Author</name>
+    </author>
+    <content type="html">&lt;p&gt;2016年9月24日にクラウドワークスにて開催されたOSS Gateワークショップに参加してきました。&lt;/p&gt;
+
+&lt;h3&gt;そもそもOSS Gateとは？&lt;/h3&gt;
+
+&lt;p&gt;OSS開発に参加する人を増やす取り組み、2015年12月15日から始まったようです&lt;br/&gt;
+詳しくは&lt;a href="http://oss-gate.github.io/announce/update/2015/12/17/welcome-to-oss-gate.html"&gt;こちら&lt;/a&gt;から&lt;/p&gt;
+
+&lt;h3&gt;活動を知ったきっかけ&lt;/h3&gt;
+
+&lt;p&gt;twitterのフォロワーさんの情報から知りました&lt;br/&gt;
+9月に開催されたRubyKaigi2016 in Kyotoで須藤さんの話の中でも取り上げられ、知った人は多いのではないかと思います&lt;/p&gt;
+
+&lt;h3&gt;参加者の種類&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ビギナー：OSSの開発未経験な人(今回の対象)&lt;/li&gt;
+&lt;li&gt;メンター：OSS開発経験者&lt;/li&gt;
+&lt;li&gt;サポートメンター：メンターのサポートをする人&lt;/li&gt;
+&lt;li&gt;司会役&lt;/li&gt;
+&lt;li&gt;レポーター：OSSGateの様子をレポートとしてまとめる人&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;勉強会の進め方&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;イベントの説明&lt;/li&gt;
+&lt;li&gt;題材となるOSS決定
+
+&lt;ul&gt;
+&lt;li&gt;今回私は、「groonga」を選択しました。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;ワークタイム
+
+&lt;ul&gt;
+&lt;li&gt;Githubにissueを作成し、やったこと、思ったことを事細かにメモしていく&lt;/li&gt;
+&lt;li&gt;触ってみてドキュメント不備やエラーがあった場合の報告の仕方などをメンターさんに教えてもらう&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;振り返り
+
+&lt;ul&gt;
+&lt;li&gt;一日を通して何をしたかを担当してくれたメンターではないメンターさんに説明し、説明できていれば理解できていると自信がつく&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3&gt;実際に当日起こったこと&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href="https://github.com/oss-gate/workshop/issues/131#issuecomment-249348984"&gt;当日のissue&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;すでに、Homebrewでgroongaをインストールしていたので一旦削除し、ドキュメント通りに、ソースからコンパイルしてインストールしようとしたら&lt;br/&gt;
+私のMacではconfigureの途中でエラーで失敗した。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href="http://groonga.org/ja/docs/install/mac_os_x.html"&gt;Mac OSX Groonga インストール手順&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3&gt;当日たどり着いた答え&lt;/h3&gt;
+
+&lt;p&gt;homebrewでインストールしたopensslのライブラリのフォルダが読み込まれていない&lt;br/&gt;
+インストールする際にgroonga-httpd(groongaのWebGUI)がインストールされるのだが、ここでエラーが発生した&lt;br/&gt;
+メンターさんにいろいろ教わり、読み込んでいる箇所を特定し、Homebrewで利用しているopensslのフォルダパスを追加したらconfigureは通った&lt;/p&gt;
+
+&lt;h3&gt;当日やった試行錯誤&lt;/h3&gt;
+
+&lt;p&gt;公式どおりに下記を実行&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;ソースをダウンロードします:
+% curl -O http://packages.groonga.org/source/groonga/groonga-6.0.8.tar.gz
+% tar xvzf groonga-6.0.8.tar.gz
+% cd groonga-6.0.8
+
+configureを実行します（ configure のオプションについては configure を参照してください）:
+% ./configure
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;configureの途中でエラーが発生&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;auto/configure: error: SSL modules require the OpenSSL library.
+You can either do not enable the modules, or install the OpenSSL library
+into the system, or build the OpenSSL library statically from the source
+with nginx by using --with-openssl=&amp;lt;path&amp;gt; option.
+
+Failed to configure groonga-httpd. Details:
+
+〜〜〜〜略〜〜〜〜
+〜
+〜〜〜〜略〜〜〜〜
+checking for OpenSSL library ... not found
+checking for OpenSSL library in /usr/local/ ... not found
+checking for OpenSSL library in /usr/pkg/ ... not found
+checking for OpenSSL library in /opt/local/ ... not found
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;ここでまずopensslが入っていないことを疑ったので以下のコマンドを実行しました&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;% openssl version
+OpenSSL 0.9.8zh 14 Jan 2016
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;一応古いけどopensslは入っていることを確認&lt;br/&gt;
+次にhomebewのopensslのバージョンを調べる&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;% brew info openssl
+openssl: stable 1.0.2i
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;こっちのが新しい&lt;br/&gt;
+zshを使っているので.zshrcにhomebrewのopensslを使うように設定を追加した&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;# openssl
+OPENSSL_PATH=/usr/local/opt/openssl
+if [ -d "$OPENSSL_PATH=" ];then
+  export PATH=$OPENSSL_PATH/bin:$PATH
+  export LD_LIBRARY_PATH=$OPENSSL_PATH/lib:$LD_LIBRARY_PATH
+  export CPATH=$OPENSSL_PATH/include:$LD_LIBRARY_PATH
+fi
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;ターミナルを開き直すのを忘れて少しハマりました&lt;/p&gt;
+
+&lt;p&gt;その後再度&lt;code&gt;configure&lt;/code&gt;を実行するが結果は変わらず&lt;/p&gt;
+
+&lt;p&gt;エラーの内容をよく見てみると&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;checking for OpenSSL library ... not found
+checking for OpenSSL library in /usr/local/ ... not found
+checking for OpenSSL library in /usr/pkg/ ... not found
+checking for OpenSSL library in /opt/local/ ... not found
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;先ほど指定した&lt;code&gt;/usr/local/opt/openssl&lt;/code&gt;がないことに気が付きました&lt;br/&gt;
+ここからcheckしている箇所をgrepで探す作業を行いました&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;% grep -rl "/usr/pkg" .
+
+./vendor/nginx-1.11.3/auto/lib/geoip/conf
+./vendor/nginx-1.11.3/auto/lib/libgd/conf
+./vendor/nginx-1.11.3/auto/lib/libxslt/conf
+./vendor/nginx-1.11.3/auto/lib/openssl/conf
+./vendor/nginx-1.11.3/auto/lib/pcre/conf
+./vendor/nginx-1.11.3/objs/autoconf.err
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;このファイルの中身を確認していき、最終的に&lt;code&gt;./vendor/nginx-1.11.3/auto/lib/openssl/conf&lt;/code&gt;で設定していることがわかりました&lt;/p&gt;
+
+&lt;p&gt;&lt;a href="https://github.com/groonga/groonga/blob/master/vendor/nginx-1.11.3/auto/lib/openssl/conf#L92"&gt;Github&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;今回はここにHomebewでインストールされる&lt;code&gt;/usr/local/opt/openssl&lt;/code&gt;を追記しました&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;if [ $ngx_found = no ]; then
+
+    # Homebrew
+
+    ngx_feature="OpenSSL library in /usr/local/opt/openssl/"
+    ngx_feature_path="/usr/local/opt/openssl/include/"
+
+    if [ $NGX_RPATH = YES ]; then
+        ngx_feature_libs="-R/usr/local/opt/openssl/lib -L/usr/local/opt/openssl/lib -lssl -lcrypto $NGX_LIBDL"
+    else
+        ngx_feature_libs="-L/usr/local/opt/openssl/lib -lssl -lcrypto $NGX_LIBDL"
+    fi
+
+    . auto/feature
+fi
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;追記を行ったあと再度&lt;code&gt;configure&lt;/code&gt;を実行し完了することを確認しました。&lt;/p&gt;
+
+&lt;h3&gt;最後に&lt;/h3&gt;
+
+&lt;p&gt;今回はパッチを送るまでは到達しませんでしたが、OSSGateを通じてOSS活動というものに触れられたのは貴重な経験でした&lt;br/&gt;
+これからもOSS活動を頑張っていこうと思います。&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Nginx　メンテナンス画面作成</title>
+    <link rel="alternate" href="http://gakublog.fam.cx/2015/11/12/nginx_maintenance/"/>
+    <id>http://gakublog.fam.cx/2015/11/12/nginx_maintenance/</id>
+    <published>2015-11-12T05:39:00Z</published>
+    <updated>2018-06-11T17:35:37+09:00</updated>
+    <author>
+      <name>Article Author</name>
+    </author>
+    <content type="html">&lt;p&gt;Nginxを利用しているサービスをメンテナンスする際に、Nginxの設定を変更したり再起動せずにメンテナンス画面に切り替えるようにする&lt;br/&gt;
+Nginxではif文を使うことができるので特定のファイルの有無を判定してメンテナンス中かどうかを判定する&lt;br/&gt;
+メンテナンスモードの場合はHTTPステータスコードを503で返し、指定されたファイルを表示する&lt;br/&gt;
+リダイレクトする形式と違い、そのままのURLで利用できる&lt;/p&gt;
+
+&lt;h3&gt;前提&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;メンテナンス用ファイルは /var/www/maintenance に置く&lt;br/&gt;&lt;/li&gt;
+&lt;li&gt;特権権限で/var/tmp/do_maintenanceファイルを作成できる&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;メンテナンス用フォルダ構成&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;/var/www/maintenance/
+|-- css
+|   `-- style.css
+|-- image
+|   |-- footer_logo.png
+|   `-- header_logo.png
+`-- maintenance.html
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;nginxの設定ファイル&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight nginx"&gt;&lt;code&gt;&lt;span class="c1"&gt;# メンテナンス判定用のフラグを定義
+&lt;/span&gt;&lt;span class="k"&gt;set&lt;/span&gt; &lt;span class="nv"&gt;$maintenance&lt;/span&gt; &lt;span class="s"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="c1"&gt;#/var/tmp/domaintenanceファイルの有無を確認し、フラグの判定
+&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="s"&gt;(-e&lt;/span&gt; &lt;span class="n"&gt;/var/tmp/do_maintenance&lt;/span&gt; &lt;span class="s"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kn"&gt;set&lt;/span&gt; &lt;span class="nv"&gt;$maintenance&lt;/span&gt; &lt;span class="s"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="c1"&gt;#メンテナンス中でもサイトを確認するため
+#特定IPからは通常どおり表示させる
+&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="s"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$remote_addr&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;xxx.xxx.xxx.xxx)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kn"&gt;set&lt;/span&gt; &lt;span class="nv"&gt;$maintenance&lt;/span&gt; &lt;span class="s"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="c1"&gt;#すべてのリクエストを503で返すと画像とCSSも表示できなくなるため画像とCSSは503で返さないようにする
+#http://~~~/maintenance/css/***.css
+#http://~~~/maintenance/images/***.png
+#http://~~~/maintenance/images/***.jpeg
+#http://~~~/image/favicon.ico
+#上記のファイルは503にせず通す
+&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="s"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$request_uri&lt;/span&gt; &lt;span class="p"&gt;~&lt;/span&gt; &lt;span class="sr"&gt;^/(maintenance/css/.*\.css|maintenance/image/.*\.(png|jpg)|images/favicon.ico))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kn"&gt;set&lt;/span&gt; &lt;span class="nv"&gt;$maintenance&lt;/span&gt; &lt;span class="s"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="c1"&gt;#メンテナンス判定フラグがtrueの場合は503を返す
+&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="s"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$maintenance&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;true)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kn"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;503&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="c1"&gt;#画像とCSSのlocationを設定する
+&lt;/span&gt;&lt;span class="k"&gt;location&lt;/span&gt;  &lt;span class="p"&gt;~&lt;/span&gt; &lt;span class="sr"&gt;^/maintenance/css/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kn"&gt;root&lt;/span&gt; &lt;span class="n"&gt;/var/www/&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="k"&gt;location&lt;/span&gt;  &lt;span class="p"&gt;~&lt;/span&gt; &lt;span class="sr"&gt;^/maintenance/image/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kn"&gt;root&lt;/span&gt; &lt;span class="n"&gt;/var/www/&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="c1"&gt;#上で返した503のページを設定する
+#設定されていない場合は404になる為注意
+&lt;/span&gt;&lt;span class="k"&gt;error_page&lt;/span&gt; &lt;span class="mi"&gt;503&lt;/span&gt; &lt;span class="s"&gt;@maintenance&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;location&lt;/span&gt; &lt;span class="s"&gt;@maintenance&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kn"&gt;root&lt;/span&gt; &lt;span class="n"&gt;/var/www/maintenance&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="kn"&gt;rewrite&lt;/span&gt; &lt;span class="s"&gt;^(.*)&lt;/span&gt;$ &lt;span class="n"&gt;/maintenance.html&lt;/span&gt; &lt;span class="s"&gt;break&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;設定が完了したらnginxを再起動&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;# service nginx restart
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;再起動後はメンテナンス実施時に下記コマンドを利用するだけでメンテナンスモードにできるようになる&lt;/p&gt;
+
+&lt;h4&gt;メンテナンスモード設定&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ sudo touch /var/tmp/do_maintenance
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;メンテナンスモード解除&lt;/h4&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ sudo rm /var/tmp/do_maintenance
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content>
+  </entry>
+  <entry>
+    <title>Groongaで学ぶ全文検索 2015-10-02に参加</title>
+    <link rel="alternate" href="http://gakublog.fam.cx/2015/10/02/groonga/"/>
+    <id>http://gakublog.fam.cx/2015/10/02/groonga/</id>
+    <published>2015-10-02T10:37:00Z</published>
+    <updated>2018-06-11T17:35:37+09:00</updated>
+    <author>
+      <name>Article Author</name>
+    </author>
+    <content type="html">&lt;p&gt;今回は実際に作って使ってみる Groongaという事でMroongaを使ったRailsi製アプリで実際に全文検索を使うアプリを作ってみました&lt;/p&gt;
+
+&lt;p&gt;※rails new の部分は省きます&lt;/p&gt;
+
+&lt;h3&gt;Mroongaとは&lt;/h3&gt;
+
+&lt;p&gt;Mroongaは全文検索が得意なMySQLのステレージエンジン&lt;br/&gt;
+Mroongaはトランザクションがない分検索が早い&lt;br/&gt;
+今回はMroongaを利用するためにMySQLを利用し全文検索を行いました&lt;/p&gt;
+
+&lt;h3&gt;Railsアプリ作成&lt;/h3&gt;
+
+&lt;p&gt;今回は全文検索を行いやすくするためGroongaBlogというお題で作成を開始します&lt;/p&gt;
+
+&lt;p&gt;Gemfileにmysql2を追加します&lt;/p&gt;
+
+&lt;p&gt;Gemfile&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="n"&gt;gem&lt;/span&gt; &lt;span class="s1"&gt;'mysql2'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'~&amp;gt; 0.3.20'&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;mysql2を追加してbundle install&lt;/p&gt;
+
+&lt;p&gt;今回はBlogということでscaffoldでPost機能を作成します&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="n"&gt;bundle&lt;/span&gt; &lt;span class="nb"&gt;exec&lt;/span&gt; &lt;span class="n"&gt;rails&lt;/span&gt; &lt;span class="n"&gt;g&lt;/span&gt; &lt;span class="no"&gt;Post&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt; &lt;span class="n"&gt;body&lt;/span&gt;&lt;span class="ss"&gt;:text&lt;/span&gt;
+
+&lt;span class="n"&gt;bundle&lt;/span&gt; &lt;span class="nb"&gt;exec&lt;/span&gt; &lt;span class="n"&gt;rake&lt;/span&gt; &lt;span class="n"&gt;db&lt;/span&gt;&lt;span class="ss"&gt;:migrate&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;これでタイトルと本文があるブログ機能ができました&lt;/p&gt;
+
+&lt;p&gt;この状態で&lt;br/&gt;
+まず全文検索を使ってみる&lt;/p&gt;
+
+&lt;p&gt;今回は簡易的にURLパラメータに&lt;code&gt;keyword&lt;/code&gt;を追加し、そのkeywordを検索対象にする&lt;br/&gt;
+　&lt;/p&gt;
+
+&lt;p&gt;posts_controller.rb&lt;/p&gt;
+
+&lt;p&gt;変更前&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;index&lt;/span&gt;
+  &lt;span class="vi"&gt;@posts&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;Post&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;all&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;LIKE検索に変更する&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;index&lt;/span&gt;
+  &lt;span class="vi"&gt;@posts&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;Post&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;where&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'body LIKE ?'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"%&lt;/span&gt;&lt;span class="si"&gt;#{&lt;/span&gt;&lt;span class="n"&gt;params&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="ss"&gt;:keyword&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;%"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;これでkeywordで入ってきた単語を全文検索する事ができる&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;http://localhost:3000/posts?keyword=hogehoge
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;LIKE検索の時MySQLは逐次検索を行うので文章の量が増加するに従って遅くなる&lt;br/&gt;
+文章量が少ないサービスやシステムでは全文検索エンジンを使う必要がないが、&lt;br/&gt;
+検索エンジンを使う一つの目安として検索に1秒以上かかる場合は検索エンジンを検討するといいと言っていました&lt;/p&gt;
+
+&lt;p&gt;今回はMroongaを利用するのでまずMroongaのインストールから行う&lt;/p&gt;
+
+&lt;h3&gt;Mroongaインストール&lt;/h3&gt;
+
+&lt;p&gt;インストール方法の詳細は&lt;a href="http://mroonga.org/ja/docs/install.html"&gt;mroongaドキュメント&lt;/a&gt;を参照&lt;/p&gt;
+
+&lt;p&gt;Macの場合&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;brew install https://raw.github.com/mroonga/homebrew/master/mroonga.rb --use-homebrew-mysql
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;トークナイザーとして&lt;a href="http://mecab.googlecode.com/svn/trunk/mecab/doc/index.html"&gt;MeCab&lt;/a&gt;を利用する場合は&lt;code&gt;--with-mecab&lt;/code&gt;オプション付きでインストールしてください。&lt;/p&gt;
+
+&lt;p&gt;MeCabサポート付きでインストール&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;brew install https://raw.github.com/mroonga/homebrew/master/mroonga.rb --use-homebrew-mysql --with-mecab
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;今回は使ってみるというのが大事なのでトークナイザーは指定しませんでした&lt;/p&gt;
+
+&lt;p&gt;Mroongaのインストールが完了したら成功しているかmysqlにログインし、下記コマンドを実行して確認する&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;mysql&amp;gt; SHOW PLUGINS;
+
++-------------------+----------+--------------------+---------------+---------+
+| Name              | Status   | Type               | Library       | License |
++-------------------+----------+--------------------+---------------+---------+
+| Mroonga           | ACTIVE   | STORAGE ENGINE     | ha_mroonga.so | GPL     |
++-------------------+----------+--------------------+---------------+---------+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;このように一番下に追加されていればインストール完了です&lt;/p&gt;
+
+&lt;h3&gt;ここからRailsでMroongaを利用する方法を実践して行きます&lt;/h3&gt;
+
+&lt;p&gt;まず、大きく分けてやる事は下記の3Step&lt;br/&gt;
+Step 1. ストレージエンジンをInnoDBからMroongaに切り替える&lt;br/&gt;
+Step 2. 検索したい対象のカラムに対してIndexを作成する&lt;br/&gt;
+Step 3. LIKEでそのまま検索しても検索速度はかわらないので検索方法を修正する&lt;/p&gt;
+
+&lt;p&gt;の3ステップです&lt;/p&gt;
+
+&lt;h3&gt;Step 1&lt;/h3&gt;
+
+&lt;p&gt;ストレージエンジンをInnoDBからMroongaに切り替える&lt;/p&gt;
+
+&lt;p&gt;ストレージエンジンを切り替えるためにmigrationファイルを作成します&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="n"&gt;bundle&lt;/span&gt; &lt;span class="nb"&gt;exec&lt;/span&gt; &lt;span class="n"&gt;rails&lt;/span&gt; &lt;span class="n"&gt;g&lt;/span&gt; &lt;span class="n"&gt;migration&lt;/span&gt; &lt;span class="no"&gt;ChangeEngineToMroonga&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;作成したmigrationファイルを編集します&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;ChangeEngineToMroonga&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="no"&gt;ActiveRecord&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="no"&gt;Migration&lt;/span&gt;
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;change&lt;/span&gt; 
+    &lt;span class="n"&gt;reversible&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;dir&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
+      &lt;span class="n"&gt;dir&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;up&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+        &lt;span class="n"&gt;execute&lt;/span&gt; &lt;span class="s1"&gt;'ALTER TABLE posts ENGINE=Mroonga;'&lt;/span&gt;
+      &lt;span class="k"&gt;end&lt;/span&gt;
+
+      &lt;span class="n"&gt;dir&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;down&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+        &lt;span class="n"&gt;execute&lt;/span&gt; &lt;span class="s1"&gt;'ALTER TABLE posts ENGINE=InnoDB;'&lt;/span&gt;
+      &lt;span class="k"&gt;end&lt;/span&gt;
+    &lt;span class="k"&gt;end&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;作成したらmigrationを実行します&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="n"&gt;bundle&lt;/span&gt; &lt;span class="nb"&gt;exec&lt;/span&gt; &lt;span class="n"&gt;rake&lt;/span&gt; &lt;span class="n"&gt;db&lt;/span&gt;&lt;span class="ss"&gt;:migrate&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;実際にMySQLにログインしてEngineがMroongaに変更されているか確認をします&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;mysql&amp;gt; show create table posts;
++-------+---------------------------------------------------------------------------------+
+| Table | Create Table                                                                    |
++-------+---------------------------------------------------------------------------------+
+| posts | CREATE TABLE `posts` (                                                          |
+|       |   `id` int(11) NOT NULL AUTO_INCREMENT,                                         |
+|       |   `title` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,                    |
+|       |   `body` text COLLATE utf8_unicode_ci,                                          |
+|       |   `created_at` datetime NOT NULL,                                               |
+|       |   `updated_at` datetime NOT NULL,                                               |
+|       |   PRIMARY KEY (`id`)                                                            |
+|       | ) ENGINE=Mroonga AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci  |
++-------+---------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;これでストレージエンジンをMroongaに変更できました&lt;/p&gt;
+
+&lt;h3&gt;Step 2&lt;/h3&gt;
+
+&lt;p&gt;検索したい対象のカラムに対してIndexを作成する&lt;/p&gt;
+
+&lt;p&gt;対象カラムに対してIndexを追加するためmigrationファイルを作成します&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="n"&gt;bundle&lt;/span&gt; &lt;span class="nb"&gt;exec&lt;/span&gt; &lt;span class="n"&gt;rails&lt;/span&gt; &lt;span class="n"&gt;g&lt;/span&gt; &lt;span class="n"&gt;migration&lt;/span&gt; &lt;span class="no"&gt;AddFulltextIndexToBody&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;作成したmigrationファイルを編集します&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;AddFulltextIndexToBody&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="no"&gt;ActiveRecord&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="no"&gt;Migration&lt;/span&gt;
+  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;change&lt;/span&gt;
+    &lt;span class="n"&gt;change_table&lt;/span&gt; &lt;span class="ss"&gt;:posts&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
+      &lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;index&lt;/span&gt; &lt;span class="ss"&gt;:body&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;type: :fulltext&lt;/span&gt;
+    &lt;span class="k"&gt;end&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;ここでpostsテーブルのbodyに対して typeにfulltextを追加してIndexを追加します&lt;br/&gt;
+作成したらmigrationを実行します&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="n"&gt;bundle&lt;/span&gt; &lt;span class="nb"&gt;exec&lt;/span&gt; &lt;span class="n"&gt;rake&lt;/span&gt; &lt;span class="n"&gt;db&lt;/span&gt;&lt;span class="ss"&gt;:migrate&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;実際にMySQLにログインしてインデックスが追加されたか確認します&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;mysql&amp;gt; show create table posts;
++-------+---------------------------------------------------------------------------------+
+| Table | Create Table                                                                    |
++-------+---------------------------------------------------------------------------------+
+| posts | CREATE TABLE `posts` (                                                          |
+|       |   `id` int(11) NOT NULL AUTO_INCREMENT,                                         |
+|       |   `title` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,                    |
+|       |   `body` text COLLATE utf8_unicode_ci,                                          |
+|       |   `created_at` datetime NOT NULL,                                               |
+|       |   `updated_at` datetime NOT NULL,                                               |
+|       |   PRIMARY KEY (`id`)                                                            |
+|       |   FULLTEXT KEY `index_posts_on_body` (`body`)                                   |
+|       | ) ENGINE=Mroonga AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci  |
++-------+---------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;インデックスが追加されました&lt;/p&gt;
+
+&lt;h3&gt;Step 3&lt;/h3&gt;
+
+&lt;p&gt;LIKEでそのまま検索しても検索速度はかわらないので検索方法を修正する&lt;/p&gt;
+
+&lt;p&gt;posts_controller.rb&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;  &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;index&lt;/span&gt;
+    &lt;span class="vi"&gt;@posts&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;Post&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;where&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'MATCH(body) AGAINST(? IN BOOLEAN MODE)'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;"+&lt;/span&gt;&lt;span class="si"&gt;#{&lt;/span&gt;&lt;span class="n"&gt;params&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="ss"&gt;:keyword&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;BOOLEAN MODEとは&lt;/h4&gt;
+
+&lt;p&gt;これら語句を必ず含むレコード」や、「この語句を含んで、この語句を含まないレコード」を検索できるモード&lt;br/&gt;
++でキーワードを含む&lt;br/&gt;
+- でキーワードを含まない&lt;br/&gt;
+検索を指定できる&lt;/p&gt;
+
+&lt;p&gt;繋げて書く事で AND検索にできる&lt;/p&gt;
+
+&lt;h4&gt;NATURAL LANGUAGE MODEとは&lt;/h4&gt;
+
+&lt;p&gt;デフォルトで設定されている修飾子&lt;br/&gt;
+文章から検索結果を出す&lt;/p&gt;
+
+&lt;p&gt;これでMroongaを使った全文検索の完成です&lt;/p&gt;
+
+&lt;p&gt;思っていたよりずっと簡単に使う事ができました。&lt;/p&gt;
+
+&lt;p&gt;今日の内容は濃かった！！&lt;/p&gt;
+
+&lt;p&gt;次回、&lt;a href="https://groonga.doorkeeper.jp/events/32517"&gt;Groongaで学ぶ全文検索 2015-10-16&lt;/a&gt;&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Groongaで学ぶ全文検索 2015-09-18に参加</title>
+    <link rel="alternate" href="http://gakublog.fam.cx/2015/09/18/groonga/"/>
+    <id>http://gakublog.fam.cx/2015/09/18/groonga/</id>
+    <published>2015-09-18T10:50:00Z</published>
+    <updated>2018-06-11T17:35:37+09:00</updated>
+    <author>
+      <name>Article Author</name>
+    </author>
+    <content type="html">&lt;p&gt;私はGroongaドキュメント読書会　新リリース自慢会には参加した事がありましたが、全文検索自体よくわかっていない人です&lt;br/&gt;
+そしてある日twitterのタイムラインを見ていたら@ktouさんが&lt;/p&gt;
+
+&lt;blockquote class="twitter-tweet" lang="ja"&gt;&lt;p lang="ja" dir="ltr"&gt;Groongaのリリース作業に参加したい人っていますか？（開発よりもリリース作業の方がとっかかりの難易度が低い。）いるなら &lt;a href="https://t.co/NV9RCVkMmR"&gt;https://t.co/NV9RCVkMmR&lt;/a&gt; の「少し話は変わるのですが。。。」の後に書いていることをやりたいと思っているのでいたら声をかけてください！&lt;/p&gt;&amp;mdash; す (@ktou) &lt;a href="https://twitter.com/ktou/status/643660862469738496"&gt;2015, 9月 15&lt;/a&gt;&lt;/blockquote&gt;
+
+&lt;script async src="//platform.twitter.com/widgets.js" charset="utf-8"&gt;&lt;/script&gt;
+
+&lt;p&gt;Groongaの新リリース会で肉ばっか食ってる場合じゃねーぞ！&lt;br/&gt;&lt;br/&gt;
+と思い&lt;/p&gt;
+
+&lt;p&gt;お手伝いできることなら手伝ってみたいとの気持ちで返信&lt;br/&gt;&lt;br/&gt;
+そこから一日後。。。。  &lt;/p&gt;
+
+&lt;blockquote class="twitter-tweet" lang="ja"&gt;&lt;p lang="ja" dir="ltr"&gt;リリース作業は開発より難易度が低いですがそれでもまだ高い事がわかったので、リリース作業関係なくGroongaで全文検索を学ぶ会を隔週金曜の夜に開催することにしました！初回は明後日です！ &lt;a href="https://t.co/GVqYaR42UL"&gt;https://t.co/GVqYaR42UL&lt;/a&gt;&amp;#10;&lt;a href="https://t.co/nVvtxUnlom"&gt;https://t.co/nVvtxUnlom&lt;/a&gt;&lt;/p&gt;&amp;mdash; す (@ktou) &lt;a href="https://twitter.com/ktou/status/644115495583485956"&gt;2015, 9月 16&lt;/a&gt;&lt;/blockquote&gt;
+
+&lt;script async src="//platform.twitter.com/widgets.js" charset="utf-8"&gt;&lt;/script&gt;
+
+&lt;p&gt;という事でGroongaで学ぶ全文検索 2015-09-18に参加してきました&lt;/p&gt;
+
+&lt;p&gt;まずは、自己紹介のあと自分はどんなことが知りたい・やりたいのかを聞かれました  &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;私は、Groongaを使って何かを作ってみたい
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;何かを作れるように頑張りたいと思います&lt;br/&gt;
+まずは、レポートを書かなければ&lt;/p&gt;
+
+&lt;h2&gt;Groongaで学ぶ全文検索 方針&lt;/h2&gt;
+
+&lt;p&gt;このGroongaで学ぶ全文検索は自分の理解度を示すために、質問されたら答える！&lt;br/&gt;
+正解していれば　正しく理解できている！&lt;br/&gt;
+間違っていれば　正しい回答を得て間違いを直せる  &lt;/p&gt;
+
+&lt;p&gt;を繰り返し成長していく会です&lt;/p&gt;
+
+&lt;p&gt;そして勉強会の中でブログを書き出来れば公開するところまでする勉強会です&lt;br/&gt;
+間違っていたらその都度修正していけばいいと思います&lt;/p&gt;
+
+&lt;p&gt;記念すべき第一回は。。。&lt;/p&gt;
+
+&lt;h2&gt;全文検索ってなんですか？からスタート&lt;/h2&gt;
+
+&lt;h3&gt;全文検索とは&lt;/h3&gt;
+
+&lt;p&gt;コンピュータにおいて、複数の文章（ファイル）から特定の文字で検索すること&lt;/p&gt;
+
+&lt;p&gt;コンピュータの検索&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;入力　-&amp;gt; 全文検索　-&amp;gt; 出力
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;入力
+
+&lt;ul&gt;
+&lt;li&gt;クエリー&lt;/li&gt;
+&lt;li&gt;キーワード&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;出力
+
+&lt;ul&gt;
+&lt;li&gt;マッチした文書&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;今回は日本語のエンコード等の話が出てくるとややこしくなるため&lt;br/&gt;
+英単語 &amp;quot;hello&amp;quot;を例に検索していく&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;逐次検索（シーケンシャルサーチ）&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;検索対象の文書の先頭から1文字目(helloで言うh)を探す&lt;/li&gt;
+&lt;li&gt;見つかったら単語の2文字目(e)が隣にあるかを探す&lt;/li&gt;
+&lt;li&gt;すべてヒットするまで繰り返す
+検索単語と検索対象の文書が増えると検索結果を取得するまでに時間がかかります&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;索引（インデックス）検索&lt;br/&gt;
+システムが検索を行う場合、ファイル一つ一つに検索を行うと非常に時間がかかる&lt;br/&gt;
+そのため辞書同様に索引（インデックス）を作成する必要がある&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;全文書内から単語ごとに索引(インデックス)を作る
+
+&lt;ul&gt;
+&lt;li&gt;このインデックス作成にすごい時間がかかるがGroongaは動的にインデックスを作成する機能もある&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;単語を検索する
+検索結果は逐次検索より早い
+さらにGroongaでも利用しているアルゴリズムの話がでた&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;二分探索とは&lt;/h3&gt;
+
+&lt;p&gt;初めて聞いた単語なのでwikiより&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;二分探索とは検索のアルゴリズムの一つで　二分探索、バイナリサーチと呼ばれています &lt;br/&gt;
+ソート済みのリストや配列に入ったデータに対する検索を行う場合に中央の値をみて検索したい値の大小関係を用いて検索したい値が中央の値の右にあるか左にあるかを判断し、確かめながら検索を行っていく&lt;br/&gt;&lt;br/&gt;
+大小関係を用いるため、未ソートの場合は利用できない&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;重要なのがまず、一定のルールでソートされていること&lt;br/&gt;
+今回の場合はアルファベットでの話だったので&lt;br/&gt;
+アルファベットは小文字26文字＋大文字26文字ですが今回は小文字のみの話&lt;br/&gt;
+索引の配列　index[0] 〜 index[25]まであるとする&lt;/p&gt;
+
+&lt;p&gt;helloの文字を二分探索！！&lt;/p&gt;
+
+&lt;p&gt;アルファベットの順番のルールに従いhがindex[13]より前半ということが判断できる&lt;br/&gt;
+↓&lt;br/&gt;
+次にまたindex[7]の前半か後半かまたヒットか判断&lt;br/&gt;
+↓&lt;br/&gt;
+繰り返す&lt;/p&gt;
+
+&lt;p&gt;この方法だと文章が増加しても検索結果が早く見つけられる&lt;/p&gt;
+
+&lt;p&gt;今回はここまで&lt;br/&gt;
+次回は質問された時に答えられれば理解できているはず！！&lt;/p&gt;
+
+&lt;h2&gt;最後に&lt;/h2&gt;
+
+&lt;p&gt;検索は日々なにげなく使っているが、こんな考え方があったのかといろいろ学べた&lt;br/&gt;
+本当に初歩ではあるが、少しずつ前進して行ければいいなと思いました&lt;/p&gt;
+
+&lt;p&gt;次回、&lt;a href="https://groonga.doorkeeper.jp/events/31859"&gt;Groongaで学ぶ全文検索 2015-10-02&lt;/a&gt;&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>ubuntuにBowerを入れるときハマった事</title>
+    <link rel="alternate" href="http://gakublog.fam.cx/2015/07/29/ubuntu_bower/"/>
+    <id>http://gakublog.fam.cx/2015/07/29/ubuntu_bower/</id>
+    <published>2015-07-29T09:06:00Z</published>
+    <updated>2018-06-11T17:35:37+09:00</updated>
+    <author>
+      <name>Article Author</name>
+    </author>
+    <content type="html">&lt;p&gt;ubuntu15.04にBowerを入れるときにハマった&lt;br/&gt;
+原因は/usr/binにnodeというファイルが存在しないためである&lt;br/&gt;
+解決策は/usr/binに対してnodejsのシンボリックリンクを貼ることで解決した&lt;/p&gt;
+
+&lt;p&gt;そもそもBowerとは&lt;br/&gt;
+BowerはTwitter製のJavascript、CSS、HTMLなどを依存関係を含めて管理してくれるパッケージ管理ツール&lt;/p&gt;
+
+&lt;p&gt;各パッケージにある設定ファイル&amp;quot;bower.json&amp;quot;に依存パッケージが記載されており、インストール時に依存パッケージを含めて読み込んでくれる&lt;br/&gt;
+環境構築時にプロジェクトに設定ファイルを置けば、そこに記述されたパッケージを1コマンドで自動一括インストールすることもできる。&lt;/p&gt;
+
+&lt;p&gt;では実際にインストールしてみる&lt;/p&gt;
+
+&lt;h1&gt;インストール手順&lt;/h1&gt;
+
+&lt;p&gt;そもそもの前提としてnode.jsがインストールされていることが前提なのでまずはnode.jsを入れる&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ sudo aptitude install nodejs
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;続いてnpmをインストール&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ sudo aptitude install npm
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;npmがインストールできたら本命のbowerをインストールする&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ sudo npm install -g bower
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;インストールが完了したら所在確認&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ which bower
+/usr/local/bin/bower
+
+$ bower --version
+/usr/bin/env: node: そのようなファイルやディレクトリはありません
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;bowerコマンドを実行したらnodeファイルが見つかりませんとエラーがでました&lt;br/&gt;
+/usr/bin nodeとい名前でファイルがないのでにシンボリックリンクを貼って実行できるようにします&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ sudo ln -s /usr/bin/nodejs /usr/bin/node
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;シンボリックリンクを貼ったら実行できるか確認する&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ bower --version
+1.4.1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;インストールできました&lt;br/&gt;
+これでbowerでCSS管理できるようになりました&lt;br/&gt;
+めでたしめでたし！&lt;/p&gt;
+</content>
+  </entry>
+</feed>

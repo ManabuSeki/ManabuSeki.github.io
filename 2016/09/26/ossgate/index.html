@@ -1,0 +1,369 @@
+<!doctype html> 
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta content="IE=edge;chrome=1" http-equiv="X-UA-Compatible" />
+    <meta content="hPEM88DJIkoFEORP5k4twCs5-g0h9euejtqoCUBExXk" name="google-site-verification" />
+    <title>GakuBlog | OSSGateワークショップに参加した感想</title>
+    <meta content="2016年9月24日にクラウドワークスにて開催されたOSS Gateワークショップに参加してきました。
+
+そもそもOSS Gateとは？
+
+OSS開発に参加する人を増やす取り組み、2015年12..." name="description" />
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" /><!--[if lt IE 9]><script src="../../../../js/ie8.js" type="text/javascript"></script><![endif]--><link href="../../../../css/all.css" media="screen" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button class="navbar-toggle" data-target=".navbar-ex1-collapse" data-toggle="collapse" type="button"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button><a class="navbar-brand" href="/">GakuBlog</a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+          <ul class="nav navbar-nav"></ul>
+          <ul class="list-unstyled list-inline nav navbar-nav navbar-right">
+            <li>
+              <a href="https://twitter.com/Gaku07jp"><i class="fa fa-twitter-square fa-lg fa-inverse"></i></a>
+            </li>
+            <li>
+              <a href="/feed.xml"><i class="fa fa-rss-square fa-lg fa-inverse"></i></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-9 col-md-9">
+          <h1>
+            OSSGateワークショップに参加した感想
+          </h1>
+          <small class="label label-default">OSSGate</small>
+          <hr />
+          <p>
+            <span class="glyphicon glyphicon-time"></span> 投稿日 2016年09月26日
+          </p>
+          <hr /><p>2016年9月24日にクラウドワークスにて開催されたOSS Gateワークショップに参加してきました。</p>
+
+<h3>そもそもOSS Gateとは？</h3>
+
+<p>OSS開発に参加する人を増やす取り組み、2015年12月15日から始まったようです<br/>
+詳しくは<a href="http://oss-gate.github.io/announce/update/2015/12/17/welcome-to-oss-gate.html">こちら</a>から</p>
+
+<h3>活動を知ったきっかけ</h3>
+
+<p>twitterのフォロワーさんの情報から知りました<br/>
+9月に開催されたRubyKaigi2016 in Kyotoで須藤さんの話の中でも取り上げられ、知った人は多いのではないかと思います</p>
+
+<h3>参加者の種類</h3>
+
+<ul>
+<li>ビギナー：OSSの開発未経験な人(今回の対象)</li>
+<li>メンター：OSS開発経験者</li>
+<li>サポートメンター：メンターのサポートをする人</li>
+<li>司会役</li>
+<li>レポーター：OSSGateの様子をレポートとしてまとめる人</li>
+</ul>
+
+<h3>勉強会の進め方</h3>
+
+<ol>
+<li>イベントの説明</li>
+<li>題材となるOSS決定
+
+<ul>
+<li>今回私は、「groonga」を選択しました。</li>
+</ul></li>
+<li>ワークタイム
+
+<ul>
+<li>Githubにissueを作成し、やったこと、思ったことを事細かにメモしていく</li>
+<li>触ってみてドキュメント不備やエラーがあった場合の報告の仕方などをメンターさんに教えてもらう</li>
+</ul></li>
+<li>振り返り
+
+<ul>
+<li>一日を通して何をしたかを担当してくれたメンターではないメンターさんに説明し、説明できていれば理解できていると自信がつく</li>
+</ul></li>
+</ol>
+
+<h3>実際に当日起こったこと</h3>
+
+<p><a href="https://github.com/oss-gate/workshop/issues/131#issuecomment-249348984">当日のissue</a></p>
+
+<p>すでに、Homebrewでgroongaをインストールしていたので一旦削除し、ドキュメント通りに、ソースからコンパイルしてインストールしようとしたら<br/>
+私のMacではconfigureの途中でエラーで失敗した。</p>
+
+<p><a href="http://groonga.org/ja/docs/install/mac_os_x.html">Mac OSX Groonga インストール手順</a></p>
+
+<h3>当日たどり着いた答え</h3>
+
+<p>homebrewでインストールしたopensslのライブラリのフォルダが読み込まれていない<br/>
+インストールする際にgroonga-httpd(groongaのWebGUI)がインストールされるのだが、ここでエラーが発生した<br/>
+メンターさんにいろいろ教わり、読み込んでいる箇所を特定し、Homebrewで利用しているopensslのフォルダパスを追加したらconfigureは通った</p>
+
+<h3>当日やった試行錯誤</h3>
+
+<p>公式どおりに下記を実行</p>
+<div class="highlight"><pre class="highlight plaintext"><code>ソースをダウンロードします:
+% curl -O http://packages.groonga.org/source/groonga/groonga-6.0.8.tar.gz
+% tar xvzf groonga-6.0.8.tar.gz
+% cd groonga-6.0.8
+
+configureを実行します（ configure のオプションについては configure を参照してください）:
+% ./configure
+</code></pre></div>
+<p>configureの途中でエラーが発生</p>
+<div class="highlight"><pre class="highlight plaintext"><code>auto/configure: error: SSL modules require the OpenSSL library.
+You can either do not enable the modules, or install the OpenSSL library
+into the system, or build the OpenSSL library statically from the source
+with nginx by using --with-openssl=&lt;path&gt; option.
+
+Failed to configure groonga-httpd. Details:
+
+〜〜〜〜略〜〜〜〜
+〜
+〜〜〜〜略〜〜〜〜
+checking for OpenSSL library ... not found
+checking for OpenSSL library in /usr/local/ ... not found
+checking for OpenSSL library in /usr/pkg/ ... not found
+checking for OpenSSL library in /opt/local/ ... not found
+</code></pre></div>
+<p>ここでまずopensslが入っていないことを疑ったので以下のコマンドを実行しました</p>
+<div class="highlight"><pre class="highlight plaintext"><code>% openssl version
+OpenSSL 0.9.8zh 14 Jan 2016
+</code></pre></div>
+<p>一応古いけどopensslは入っていることを確認<br/>
+次にhomebewのopensslのバージョンを調べる</p>
+<div class="highlight"><pre class="highlight plaintext"><code>% brew info openssl
+openssl: stable 1.0.2i
+</code></pre></div>
+<p>こっちのが新しい<br/>
+zshを使っているので.zshrcにhomebrewのopensslを使うように設定を追加した</p>
+<div class="highlight"><pre class="highlight plaintext"><code># openssl
+OPENSSL_PATH=/usr/local/opt/openssl
+if [ -d "$OPENSSL_PATH=" ];then
+  export PATH=$OPENSSL_PATH/bin:$PATH
+  export LD_LIBRARY_PATH=$OPENSSL_PATH/lib:$LD_LIBRARY_PATH
+  export CPATH=$OPENSSL_PATH/include:$LD_LIBRARY_PATH
+fi
+</code></pre></div>
+<p>ターミナルを開き直すのを忘れて少しハマりました</p>
+
+<p>その後再度<code>configure</code>を実行するが結果は変わらず</p>
+
+<p>エラーの内容をよく見てみると</p>
+<div class="highlight"><pre class="highlight plaintext"><code>checking for OpenSSL library ... not found
+checking for OpenSSL library in /usr/local/ ... not found
+checking for OpenSSL library in /usr/pkg/ ... not found
+checking for OpenSSL library in /opt/local/ ... not found
+</code></pre></div>
+<p>先ほど指定した<code>/usr/local/opt/openssl</code>がないことに気が付きました<br/>
+ここからcheckしている箇所をgrepで探す作業を行いました</p>
+<div class="highlight"><pre class="highlight plaintext"><code>% grep -rl "/usr/pkg" .
+
+./vendor/nginx-1.11.3/auto/lib/geoip/conf
+./vendor/nginx-1.11.3/auto/lib/libgd/conf
+./vendor/nginx-1.11.3/auto/lib/libxslt/conf
+./vendor/nginx-1.11.3/auto/lib/openssl/conf
+./vendor/nginx-1.11.3/auto/lib/pcre/conf
+./vendor/nginx-1.11.3/objs/autoconf.err
+</code></pre></div>
+<p>このファイルの中身を確認していき、最終的に<code>./vendor/nginx-1.11.3/auto/lib/openssl/conf</code>で設定していることがわかりました</p>
+
+<p><a href="https://github.com/groonga/groonga/blob/master/vendor/nginx-1.11.3/auto/lib/openssl/conf#L92">Github</a></p>
+
+<p>今回はここにHomebewでインストールされる<code>/usr/local/opt/openssl</code>を追記しました</p>
+<div class="highlight"><pre class="highlight plaintext"><code>if [ $ngx_found = no ]; then
+
+    # Homebrew
+
+    ngx_feature="OpenSSL library in /usr/local/opt/openssl/"
+    ngx_feature_path="/usr/local/opt/openssl/include/"
+
+    if [ $NGX_RPATH = YES ]; then
+        ngx_feature_libs="-R/usr/local/opt/openssl/lib -L/usr/local/opt/openssl/lib -lssl -lcrypto $NGX_LIBDL"
+    else
+        ngx_feature_libs="-L/usr/local/opt/openssl/lib -lssl -lcrypto $NGX_LIBDL"
+    fi
+
+    . auto/feature
+fi
+</code></pre></div>
+<p>追記を行ったあと再度<code>configure</code>を実行し完了することを確認しました。</p>
+
+<h3>最後に</h3>
+
+<p>今回はパッチを送るまでは到達しませんでしたが、OSSGateを通じてOSS活動というものに触れられたのは貴重な経験でした<br/>
+これからもOSS活動を頑張っていこうと思います。</p>
+
+        </div>
+        <div class="col-lg-3 col-md-3">
+          <div class="well">
+            <h4>
+              タグ
+            </h4>
+            <ul class="list-unstyled">
+              <li>
+                <a href="/tags/よちよちrb/">よちよちrb</a> (1)
+              </li>
+              <li>
+                <a href="/tags/ubuntu/">ubuntu</a> (2)
+              </li>
+              <li>
+                <a href="/tags/groonga/">groonga</a> (2)
+              </li>
+              <li>
+                <a href="/tags/nginx/">nginx</a> (1)
+              </li>
+              <li>
+                <a href="/tags/ossgate/">OSSGate</a> (1)
+              </li>
+              <li>
+                <a href="/tags/ldap/">ldap</a> (1)
+              </li>
+              <li>
+                <a href="/tags/centos/">centos</a> (1)
+              </li>
+            </ul>
+          </div>
+          <div class="well">
+            <h4>
+              年
+            </h4>
+            <ul>
+              <li>
+                <a href="/2017/">2017</a> (1)
+                <ul>
+                  <li>
+                    <a href="/2017/08/">8月</a>(1)
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="/2016/">2016</a> (1)
+                <ul>
+                  <li>
+                    <a href="/2016/09/">9月</a>(1)
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="/2015/">2015</a> (5)
+                <ul>
+                  <li>
+                    <a href="/2015/11/">11月</a>(1)
+                  </li>
+                  <li>
+                    <a href="/2015/10/">10月</a>(1)
+                  </li>
+                  <li>
+                    <a href="/2015/09/">9月</a>(1)
+                  </li>
+                  <li>
+                    <a href="/2015/07/">7月</a>(1)
+                  </li>
+                  <li>
+                    <a href="/2015/06/">6月</a>(1)
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="/2014/">2014</a> (1)
+                <ul>
+                  <li>
+                    <a href="/2014/12/">12月</a>(1)
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="well">
+            <h4>
+              最近の投稿
+            </h4>
+            <ul>
+              <li>
+                <a href="../../../../2017/08/01/centos7_ldap/">CentOS7でLDAP</a>
+                <ul>
+                  <li>
+                    2017年08月01日
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="./">OSSGateワークショップに参加した感想</a>
+                <ul>
+                  <li>
+                    2016年09月26日
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="../../../../2015/11/12/nginx_maintenance/">Nginx　メンテナンス画面作成</a>
+                <ul>
+                  <li>
+                    2015年11月12日
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="../../../../2015/10/02/groonga/">Groongaで学ぶ全文検索 2015-10-02に参加</a>
+                <ul>
+                  <li>
+                    2015年10月02日
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="../../../../2015/09/18/groonga/">Groongaで学ぶ全文検索 2015-09-18に参加</a>
+                <ul>
+                  <li>
+                    2015年09月18日
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="../../../../2015/07/29/ubuntu_bower/">ubuntuにBowerを入れるときハマった事</a>
+                <ul>
+                  <li>
+                    2015年07月29日
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="../../../../2015/06/19/ricty_font/">Rictyフォントのインストール</a>
+                <ul>
+                  <li>
+                    2015年06月19日
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="../../../../2014/12/15/blog/">はじめてのBlog</a>
+                <ul>
+                  <li>
+                    2014年12月15日
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <hr />
+      <p class="text-center">
+        2016 <a href="/">GakuBlog</a>
+      </p>
+    </div>
+    <script src="../../../../js/all.js" type="text/javascript"></script><script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(["_setAccount", "UA-57646652-2"]);
+      _gaq.push(["_trackPageview"]);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? '//ssl' : '//www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>
