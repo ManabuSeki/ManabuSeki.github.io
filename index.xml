@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>GakuBlog</title>
+    <link>https://blog.zitaku.net/</link>
+    <description>Recent content on GakuBlog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja-jp</language>
+    <lastBuildDate>Fri, 13 Dec 2019 00:00:00 +0900</lastBuildDate>
+    
+	<atom:link href="https://blog.zitaku.net/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Blogをhugoに移行しました</title>
+      <link>https://blog.zitaku.net/2019/12/13/</link>
+      <pubDate>Fri, 13 Dec 2019 00:00:00 +0900</pubDate>
+      
+      <guid>https://blog.zitaku.net/2019/12/13/</guid>
+      <description>これまでruby製の静的サイトジェネレータでBlogを書いておりましたが、この度golang製のhugoに乗り換えました。
+特別不満があった訳ではなく、ブログのアップデートをするぐらいなら一から構築し直してみるかーぐらいの気持ちです。
+過去の投稿については時間を見つけて順次移行していこうと思います。 このツールはテストする為のツールである。</description>
+    </item>
+    
+  </channel>
+</rss>
