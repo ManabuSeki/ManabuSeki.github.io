@@ -481,7 +481,6 @@ kbd {
         line-height: 1; }
       .header .service-icons .service-icon {
         display: none; } }
-
 .footer {
   text-align: center;
   padding: 24px;
@@ -521,11 +520,11 @@ kbd {
           fill: #ccc; }
     .service-icons .service-icon a:hover, .service-icons .service-icon a:active {
       border-color: transparent; }
-      .service-icons .service-icon a:hover.twitter, .service-icons .service-icon a:active.twitter {
+      .service-icons .service-icon a.twitter:hover, .service-icons .service-icon a.twitter:active {
         background-color: #55acee; }
-      .service-icons .service-icon a:hover.github, .service-icons .service-icon a:active.github {
+      .service-icons .service-icon a.github:hover, .service-icons .service-icon a.github:active {
         background-color: #231f20; }
-      .service-icons .service-icon a:hover.qiita, .service-icons .service-icon a:active.qiita {
+      .service-icons .service-icon a.qiita:hover, .service-icons .service-icon a.qiita:active {
         background-color: #59bb0c; }
       .service-icons .service-icon a:hover path, .service-icons .service-icon a:active path {
         fill: white; }
@@ -580,7 +579,6 @@ kbd {
     .main-container {
       display: block;
       padding: 0px 0; } }
-
 .articles {
   display: table-cell;
   vertical-align: top;
@@ -593,7 +591,6 @@ kbd {
     .articles {
       max-width: unset;
       min-width: unset; } }
-
 .article {
   background-color: white;
   padding: 16px;
@@ -682,7 +679,6 @@ kbd {
   @media screen and (max-width: 960px) {
     .asides {
       display: block; } }
-
 .aside {
   background-color: white;
   padding: 16px;
@@ -698,7 +694,6 @@ kbd {
   @media screen and (max-width: 960px) {
     .aside {
       width: unset; } }
-
 .profile_img {
   border-radius: 50%;
   padding: 8px;
@@ -741,7 +736,6 @@ kbd {
   @media screen and (max-width: 960px) {
     .pager-block {
       margin: 8px 0; } }
-
 .pager {
   text-align: center; }
   .pager .pager-link {
