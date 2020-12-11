@@ -760,9 +760,10 @@ kbd {
 
 .x-code-block {
   margin-top: -1px; }
-  .x-code-block figure {
-    margin: auto; }
 
 .x-code-block pre {
   padding: 0.5em;
   white-space: pre-wrap; }
+
+figure {
+  margin: auto; }
