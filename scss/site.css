@@ -404,10 +404,8 @@ p {
   word-wrap: break-word; }
 
 .highlight {
-  border-radius: 3px;
   overflow-x: auto;
-  background-color: #272822;
-  margin: .4rem 0; }
+  background-color: #272822; }
   .highlight pre {
     margin: 1rem .8rem;
     tab-size: 8 !important;
@@ -533,7 +531,7 @@ kbd {
   display: block;
   border: 1px solid lightgray;
   padding: 8px;
-  max-width: 24rem; }
+  max-width: 36rem; }
   .external-link-github .external-link-github-avatar {
     float: left;
     height: 80px;
@@ -752,3 +750,19 @@ kbd {
 
 .hljs {
   padding: 16px; }
+
+.x-code-block-title {
+  display: inline-block;
+  font-size: smaller;
+  padding: 0 0.5em;
+  background: gray;
+  color: white; }
+
+.x-code-block {
+  margin-top: -1px; }
+  .x-code-block figure {
+    margin: auto; }
+
+.x-code-block pre {
+  padding: 0.5em;
+  white-space: pre-wrap; }

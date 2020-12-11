@@ -3,6 +3,36 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://blog.zitaku.net/2020/</loc>
+    <lastmod>2020-12-05T00:00:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.zitaku.net/tags/ci/</loc>
+    <lastmod>2020-12-05T00:00:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.zitaku.net/</loc>
+    <lastmod>2020-12-05T00:00:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.zitaku.net/tags/github/</loc>
+    <lastmod>2020-12-05T00:00:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.zitaku.net/tags/</loc>
+    <lastmod>2020-12-05T00:00:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.zitaku.net/2020/12/12/</loc>
+    <lastmod>2020-12-05T00:00:00+09:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://blog.zitaku.net/2019/</loc>
     <lastmod>2019-12-13T00:00:00+09:00</lastmod>
   </url>
@@ -13,17 +43,7 @@
   </url>
   
   <url>
-    <loc>https://blog.zitaku.net/</loc>
-    <lastmod>2019-12-13T00:00:00+09:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://blog.zitaku.net/tags/hugo/</loc>
-    <lastmod>2019-12-13T00:00:00+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.zitaku.net/tags/</loc>
     <lastmod>2019-12-13T00:00:00+09:00</lastmod>
   </url>
   

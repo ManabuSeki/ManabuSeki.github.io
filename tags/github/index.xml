@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>GakuBlog</title>
-    <link>https://blog.zitaku.net/</link>
-    <description>Recent content on GakuBlog</description>
+    <title>GITHUB on GakuBlog</title>
+    <link>https://blog.zitaku.net/tags/github/</link>
+    <description>Recent content in GITHUB on GakuBlog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Sat, 05 Dec 2020 00:00:00 +0900</lastBuildDate><atom:link href="https://blog.zitaku.net/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 05 Dec 2020 00:00:00 +0900</lastBuildDate><atom:link href="https://blog.zitaku.net/tags/github/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>自動レビュー依頼のactionを作成しました</title>
       <link>https://blog.zitaku.net/2020/12/12/</link>
@@ -28,17 +28,6 @@ github actionsはDockerで動くので今回は以下のような構成で作成
  ソースレポジトリ側でプログラムを書いて、リリースを行う actionレポジトリのDockerfileでリリースされたものを取り込みタグを打って公開する  ソースレポジトリ ManabuSeki/pr-auto-assign  github.com  actionレポジトリ ManabuSeki/pr-auto-assign-action  github.com  pr-auto-assign-actionの利用方法 1. configファイルの作成 pr-auto-assignを使う為のconfigファイルを作成する必要があります。
 作成する場所は後述するworkflowで指定するのでどこに作成しても問題ありませんが、.github/auto_assign.yml あたりが無難でしょう。
 以下のようなファイルを作成します .github/auto_assign.yml # A list of reviewers to be added to pull requests (GitHub user name) # Must Reviewer must_reviewers: - A reviewers: - B - C - D # A number of reviewers added to the pull request # Set 0 to add all the reviewers (default: 0) number_of_reviewers: 2  上記の設定の場合</description>
-    </item>
-    
-    <item>
-      <title>Blogをhugoに移行しました</title>
-      <link>https://blog.zitaku.net/2019/12/13/</link>
-      <pubDate>Fri, 13 Dec 2019 00:00:00 +0900</pubDate>
-      
-      <guid>https://blog.zitaku.net/2019/12/13/</guid>
-      <description>これまでruby製の静的サイトジェネレータでBlogを書いておりましたが、この度golang製のhugoに乗り換えました。
-特別不満があった訳ではなく、ブログのアップデートをするぐらいなら一から構築し直してみるかーぐらいの気持ちです。
-過去の投稿については時間を見つけて順次移行していこうと思います。</description>
     </item>
     
   </channel>
