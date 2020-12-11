@@ -13,21 +13,17 @@
       <pubDate>Sat, 05 Dec 2020 00:00:00 +0900</pubDate>
       
       <guid>https://blog.zitaku.net/2020/12/12/</guid>
-      <description>この記事は フラー Advent Calendar 2020 12日目の記事です。
-11日目はFumio Takeuchiさんでプログラマ1年目のPR指摘事項を振り返ってみる でした。
- 前回から一年たってしまいました。古いBlog記事の移行もできてません、ごめんなさい(コピペだけで動くと思ったら動かなかった)
-懺悔はここまで
-弊社は開発にGitHubを利用し、ソースコードの修正はプルリクエスト(以降　PR)をレビューしてもらう文化があります。
-今まではPRを作成し、reviewersを毎回指定していました。
-1年半前まではレビュアーは自分含めて3人しかおらず、毎回同じ人がレビューをしていたので問題ありませんでしたが、喜ばしいことにサーバーサイドエンジニアの入社が続々と。。。
-人数が増えたので固定していたレビューをランダムにすることにしました。
-なぜ自分が自動レビュー依頼用のactionを作ろうと思ったかですが、単にactionを作ってみたかったからというのと、
-ランダムは嬉しいんだけど、このプロジェクトには この人に必ずレビューして欲しい というような個人的な要望があったので作ってみました。
-最初はTypeScriptで頑張ろうかと思ったのですが、仕事でgolangを使っているのでgolangで書くことにしました。
-github actionsはDockerで動くので今回は以下のような構成で作成しました。
- ソースレポジトリ側でプログラムを書いて、リリースを行う actionレポジトリのDockerfileでリリースされたものを取り込みタグを打って公開する  ソースレポジトリ ManabuSeki/pr-auto-assign  github.com  actionレポジトリ ManabuSeki/pr-auto-assign-action  github.com  pr-auto-assign-actionの利用方法 1. configファイルの作成 pr-auto-assignを使う為のconfigファイルを作成する必要があります。
-作成する場所は後述するworkflowで指定するのでどこに作成しても問題ありませんが、.github/auto_assign.yml あたりが無難でしょう。
-以下のようなファイルを作成します。 .github/auto_assign.yml # A list of reviewers to be added to pull requests (GitHub user name) # Must Reviewer must_reviewers: - A reviewers: - B - C - D # A number of reviewers added to the pull request # Set 0 to add all the reviewers (default: 0) number_of_reviewers: 2  上記の設定の場合</description>
+      <description>&lt;p&gt;この記事は &lt;a href=&#34;https://adventar.org/calendars/5034&#34; target=&#34;_blank&#34;&gt;フラー Advent Calendar 2020&lt;/a&gt;
+ 12日目の記事です。&lt;br&gt;
+11日目はFumio Takeuchiさんで&lt;a href=&#34;https://qiita.com/ftaked/items/3cfef676e04b18d20d6e&#34; target=&#34;_blank&#34;&gt;プログラマ1年目のPR指摘事項を振り返ってみる&lt;/a&gt;
+でした。&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;前回から一年たってしまいました。古いBlog記事の移行もできてません、ごめんなさい(コピペだけで動くと思ったら動かなかった)&lt;br&gt;
+懺悔はここまで&lt;/p&gt;
+&lt;p&gt;弊社は開発にGitHubを利用し、ソースコードの修正はプルリクエスト(以降　PR)をレビューしてもらう文化があります。&lt;br&gt;
+今まではPRを作成し、reviewersを毎回指定していました。&lt;/p&gt;
+&lt;p&gt;1年半前まではレビュアーは自分含めて3人しかおらず、毎回同じ人がレビューをしていたので問題ありませんでしたが、喜ばしいことにサーバーサイドエンジニアの入社が続々と。。。&lt;br&gt;
+人数が増えたので固定していたレビューをランダムにすることにしました。&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -36,9 +32,7 @@ github actionsはDockerで動くので今回は以下のような構成で作成
       <pubDate>Fri, 13 Dec 2019 00:00:00 +0900</pubDate>
       
       <guid>https://blog.zitaku.net/2019/12/13/</guid>
-      <description>これまでruby製の静的サイトジェネレータでBlogを書いておりましたが、この度golang製のhugoに乗り換えました。
-特別不満があった訳ではなく、ブログのアップデートをするぐらいなら一から構築し直してみるかーぐらいの気持ちです。
-過去の投稿については時間を見つけて順次移行していこうと思います。</description>
+      <description>これまでruby製の静的サイトジェネレータでBlogを書いておりましたが、この度golang製のhugoに乗り換えました。 特別不満があった訳</description>
     </item>
     
   </channel>
