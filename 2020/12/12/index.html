@@ -74,48 +74,6 @@ github actionsはDockerで動くので今回は以下のような構成で作成
 
 
 <link rel="stylesheet" href="/scss/site.css" integrity="" media="screen">
-<meta property="og:title" content="自動レビュー依頼のactionを作成しました" />
-<meta property="og:description" content="この記事は フラー Advent Calendar 2020 12日目の記事です。
-11日目はFumio Takeuchiさんでプログラマ1年目のPR指摘事項を振り返ってみる でした。
- 前回から一年たってしまいました。古いBlog記事の移行もできてません、ごめんなさい(コピペだけで動くと思ったら動かなかった)
-懺悔はここまで
-弊社は開発にGitHubを利用し、ソースコードの修正はプルリクエスト(以降　PR)をレビューしてもらう文化があります。
-今まではPRを作成し、reviewersを毎回指定していました。
-1年半前まではレビュアーは自分含めて3人しかおらず、毎回同じ人がレビューをしていたので問題ありませんでしたが、喜ばしいことにサーバーサイドエンジニアの入社が続々と。。。
-人数が増えたので固定していたレビューをランダムにすることにしました。
-なぜ自分が自動レビュー依頼用のactionを作ろうと思ったかですが、単にactionを作ってみたかったからというのと、
-ランダムは嬉しいんだけど、このプロジェクトには この人に必ずレビューして欲しい というような個人的な要望があったので作ってみました。
-最初はTypeScriptで頑張ろうかと思ったのですが、仕事でgolangを使っているのでgolangで書くことにしました。
-github actionsはDockerで動くので今回は以下のような構成で作成しました。
- ソースレポジトリ側でプログラムを書いて、リリースを行う actionレポジトリのDockerfileでリリースされたものを取り込みタグを打って公開する  ソースレポジトリ ManabuSeki/pr-auto-assign  github.com  actionレポジトリ ManabuSeki/pr-auto-assign-action  github.com  pr-auto-assign-actionの利用方法 1. configファイルの作成 pr-auto-assignを使う為のconfigファイルを作成する必要があります。
-作成する場所は後述するworkflowで指定するのでどこに作成しても問題ありませんが、.github/auto_assign.yml あたりが無難でしょう。
-以下のようなファイルを作成します。 .github/auto_assign.yml # A list of reviewers to be added to pull requests (GitHub user name) # Must Reviewer must_reviewers: - A reviewers: - B - C - D # A number of reviewers added to the pull request # Set 0 to add all the reviewers (default: 0) number_of_reviewers: 2  上記の設定の場合" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://blog.zitaku.net/2020/12/12/" />
-<meta property="og:image" content="https://blog.zitaku.net/images/gaku.jpg"/>
-<meta property="article:published_time" content="2020-12-05T00:00:00+09:00" />
-<meta property="article:modified_time" content="2020-12-05T00:00:00+09:00" />
-
-<meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:image" content="https://blog.zitaku.net/images/gaku.jpg"/>
-
-<meta name="twitter:title" content="自動レビュー依頼のactionを作成しました"/>
-<meta name="twitter:description" content="この記事は フラー Advent Calendar 2020 12日目の記事です。
-11日目はFumio Takeuchiさんでプログラマ1年目のPR指摘事項を振り返ってみる でした。
- 前回から一年たってしまいました。古いBlog記事の移行もできてません、ごめんなさい(コピペだけで動くと思ったら動かなかった)
-懺悔はここまで
-弊社は開発にGitHubを利用し、ソースコードの修正はプルリクエスト(以降　PR)をレビューしてもらう文化があります。
-今まではPRを作成し、reviewersを毎回指定していました。
-1年半前まではレビュアーは自分含めて3人しかおらず、毎回同じ人がレビューをしていたので問題ありませんでしたが、喜ばしいことにサーバーサイドエンジニアの入社が続々と。。。
-人数が増えたので固定していたレビューをランダムにすることにしました。
-なぜ自分が自動レビュー依頼用のactionを作ろうと思ったかですが、単にactionを作ってみたかったからというのと、
-ランダムは嬉しいんだけど、このプロジェクトには この人に必ずレビューして欲しい というような個人的な要望があったので作ってみました。
-最初はTypeScriptで頑張ろうかと思ったのですが、仕事でgolangを使っているのでgolangで書くことにしました。
-github actionsはDockerで動くので今回は以下のような構成で作成しました。
- ソースレポジトリ側でプログラムを書いて、リリースを行う actionレポジトリのDockerfileでリリースされたものを取り込みタグを打って公開する  ソースレポジトリ ManabuSeki/pr-auto-assign  github.com  actionレポジトリ ManabuSeki/pr-auto-assign-action  github.com  pr-auto-assign-actionの利用方法 1. configファイルの作成 pr-auto-assignを使う為のconfigファイルを作成する必要があります。
-作成する場所は後述するworkflowで指定するのでどこに作成しても問題ありませんが、.github/auto_assign.yml あたりが無難でしょう。
-以下のようなファイルを作成します。 .github/auto_assign.yml # A list of reviewers to be added to pull requests (GitHub user name) # Must Reviewer must_reviewers: - A reviewers: - B - C - D # A number of reviewers added to the pull request # Set 0 to add all the reviewers (default: 0) number_of_reviewers: 2  上記の設定の場合"/>
-
 
 </head>
 
@@ -144,10 +102,10 @@ github actionsはDockerで動くので今回は以下のような構成で作成
     <p class="tags">
       
       
-      <a href="/tags/ci/">CI</a>
+      <a href="/tags/ci">CI</a>
       
       
-      <a href="/tags/github/">GITHUB</a>
+      <a href="/tags/github">GITHUB</a>
       
     </p>
   </div>
