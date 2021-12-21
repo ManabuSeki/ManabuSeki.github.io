@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>2021 on GakuBlog</title>
+    <link>https://blog.zitaku.net/2021/</link>
+    <description>Recent content in 2021 on GakuBlog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja-jp</language>
+    <lastBuildDate>Wed, 22 Dec 2021 00:00:00 +0900</lastBuildDate><atom:link href="https://blog.zitaku.net/2021/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CloudFormationのパラメータ管理をjsonにした話</title>
+      <link>https://blog.zitaku.net/2021/12/22/</link>
+      <pubDate>Wed, 22 Dec 2021 00:00:00 +0900</pubDate>
+      
+      <guid>https://blog.zitaku.net/2021/12/22/</guid>
+      <description>&lt;p&gt;この記事は &lt;a href=&#34;https://qiita.com/advent-calendar/2021/fuller-inc&#34; target=&#34;_blank&#34;&gt;フラー株式会社 Advent Calendar 2021&lt;/a&gt;
+ 22日目の記事です。&lt;br&gt;
+21日目は &lt;a href=&#34;https://qiita.com/Yoshiatsu_Irei&#34; target=&#34;_blank&#34;&gt;@Yoshiatsu_Irei&lt;/a&gt;
+ さんで &lt;a href=&#34;https://qiita.com/Yoshiatsu_Irei&#34; target=&#34;_blank&#34;&gt;何かかく&lt;/a&gt;
+ でした。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://qiita.com/Yoshiatsu_Irei&#34; target=&#34;_blank&#34;&gt;@Yoshiatsu_Irei&lt;/a&gt;
+ さんは沖縄からの参戦です&lt;br&gt;
+沖縄時間ではまだ2021/12/21日です!!&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;早いもので前回のブログから1年経ってしまいました。&lt;br&gt;
+フラー株式会社ではモバイルアプリやWEBサービスのクラウド基盤にAWSを採用し、AWSの構成管理に&lt;strong&gt;CloudFormation&lt;/strong&gt;を利用して構築しています。&lt;br&gt;
+今回は「とある案件」ですでに出来上がった環境へのリソースの追加時にパラメータ周りで&lt;del&gt;ハマった話&lt;/del&gt;備忘録を書こうと思います&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
