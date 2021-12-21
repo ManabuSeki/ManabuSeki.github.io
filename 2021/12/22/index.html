@@ -116,7 +116,7 @@
 <p>普段はスタックをネストさせることなく、構築しているケースが多いのですが、今回は諸事情によりスタックをネストさせて構築していました。<br>
 そもそもパラメータが必要なケースとはどのような時でしょうか<br>
 ネストさせていない場合だと<strong>parameter-overrides</strong>にはEnvironmentを指定して各環境の設定はMappingsでとる運用をしていました。</p>
-<p>
+
 
 <figure class="x-code-block">
     <figcaption class="x-code-block-title">cfn.yaml</figcaption>
@@ -139,7 +139,7 @@
     <span style="color:#f92672">development</span>:
       <span style="color:#f92672">BaseDomain</span>: <span style="color:#e6db74">&#34;example.com&#34;</span></code></pre></div></div>
 </figure>
-x</p>
+
 <p>この場合ですとBaseDomainが必要な場合は以下のように取得することができます</p>
 
 
