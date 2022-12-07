@@ -518,11 +518,11 @@ kbd {
           fill: #ccc; }
     .service-icons .service-icon a:hover, .service-icons .service-icon a:active {
       border-color: transparent; }
-      .service-icons .service-icon a.twitter:hover, .service-icons .service-icon a.twitter:active {
+      .service-icons .service-icon a:hover.twitter, .service-icons .service-icon a:active.twitter {
         background-color: #55acee; }
-      .service-icons .service-icon a.github:hover, .service-icons .service-icon a.github:active {
+      .service-icons .service-icon a:hover.github, .service-icons .service-icon a:active.github {
         background-color: #231f20; }
-      .service-icons .service-icon a.qiita:hover, .service-icons .service-icon a.qiita:active {
+      .service-icons .service-icon a:hover.qiita, .service-icons .service-icon a:active.qiita {
         background-color: #59bb0c; }
       .service-icons .service-icon a:hover path, .service-icons .service-icon a:active path {
         fill: white; }

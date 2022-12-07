@@ -120,24 +120,24 @@
 
 <figure class="x-code-block">
     <figcaption class="x-code-block-title">cfn.yaml</figcaption>
-    <div class="x-code-block"><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#f92672">AWSTemplateFormatVersion</span>: <span style="color:#e6db74">2010-09-09</span>
-
-<span style="color:#f92672">Parameters</span>:
-  <span style="color:#f92672">Environment</span>:
-    <span style="color:#f92672">Type</span>: <span style="color:#ae81ff">String</span>
-    <span style="color:#f92672">Default</span>: <span style="color:#ae81ff">development</span>
-    <span style="color:#f92672">AllowedValues</span>:
-      - <span style="color:#ae81ff">development</span>
-      - <span style="color:#ae81ff">staging</span>
-      - <span style="color:#ae81ff">production</span>
-  <span style="color:#f92672">Ec2ImageId</span>:
-    <span style="color:#f92672">Type</span>: <span style="color:#ae81ff">AWS::SSM::Parameter::Value&lt;AWS::EC2::Image::Id&gt;</span>
-    <span style="color:#f92672">Default</span>: <span style="color:#ae81ff">/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2</span>
-
-<span style="color:#f92672">Mappings</span>:
-  <span style="color:#f92672">EnvToConfigs</span>:
-    <span style="color:#f92672">development</span>:
-      <span style="color:#f92672">BaseDomain</span>: <span style="color:#e6db74">&#34;example.com&#34;</span></code></pre></div></div>
+    <div class="x-code-block"><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yml" data-lang="yml"><span style="display:flex;"><span><span style="color:#f92672">AWSTemplateFormatVersion</span>: <span style="color:#e6db74">2010-09-09</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">Parameters</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">Environment</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">Type</span>: <span style="color:#ae81ff">String</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">Default</span>: <span style="color:#ae81ff">development</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">AllowedValues</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">development</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">staging</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">production</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">Ec2ImageId</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">Type</span>: <span style="color:#ae81ff">AWS::SSM::Parameter::Value&lt;AWS::EC2::Image::Id&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">Default</span>: <span style="color:#ae81ff">/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">Mappings</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">EnvToConfigs</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">development</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">BaseDomain</span>: <span style="color:#e6db74">&#34;example.com&#34;</span></span></span></code></pre></div></div>
 </figure>
 
 <p>この場合ですとBaseDomainが必要な場合は以下のように取得することができます</p>
@@ -145,7 +145,7 @@
 
 <figure class="x-code-block">
     <figcaption class="x-code-block-title">cfn.yaml</figcaption>
-    <div class="x-code-block"><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#f92672">BaseDomain</span>: !<span style="color:#ae81ff">FindInMap [EnvToConfigs, !Ref Environment, BaseDomain]</span></code></pre></div></div>
+    <div class="x-code-block"><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yml" data-lang="yml"><span style="display:flex;"><span><span style="color:#f92672">BaseDomain</span>: !<span style="color:#ae81ff">FindInMap [EnvToConfigs, !Ref Environment, BaseDomain]</span></span></span></code></pre></div></div>
 </figure>
 
 <p>しかし、今回はすでにVPCやサブネットができあがった状態であった為VPCのIDやサブネットのIDなどの値を直に埋め込んでいかなければなりません<br>
@@ -155,30 +155,30 @@ cloudformationのスタックをネストさせるには<code>AWS::CloudFormatio
 
 <figure class="x-code-block">
     <figcaption class="x-code-block-title">cfn_base.yaml</figcaption>
-    <div class="x-code-block"><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#f92672">AWSTemplateFormatVersion</span>: <span style="color:#e6db74">&#34;2010-09-09&#34;</span>
-
-<span style="color:#f92672">Parameters</span>:
-  <span style="color:#f92672">BaseDomain</span>:
-    <span style="color:#f92672">Type</span>: <span style="color:#ae81ff">String</span>
-
-<span style="color:#f92672">Resources</span>:
-  <span style="color:#f92672">HostedZone</span>:
-    <span style="color:#f92672">Type</span>: <span style="color:#ae81ff">AWS::CloudFormation::Stack</span>
-    <span style="color:#f92672">Properties</span>:
-      <span style="color:#f92672">TemplateURL</span>: <span style="color:#e6db74">&#34;hostedzone.yaml&#34;</span>
-      <span style="color:#f92672">Parameters</span>:
-        <span style="color:#f92672">BaseDomain</span>: !<span style="color:#ae81ff">Ref BaseDomain</span></code></pre></div></div>
+    <div class="x-code-block"><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yml" data-lang="yml"><span style="display:flex;"><span><span style="color:#f92672">AWSTemplateFormatVersion</span>: <span style="color:#e6db74">&#34;2010-09-09&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">Parameters</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">BaseDomain</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">Type</span>: <span style="color:#ae81ff">String</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">Resources</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">HostedZone</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">Type</span>: <span style="color:#ae81ff">AWS::CloudFormation::Stack</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">Properties</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TemplateURL</span>: <span style="color:#e6db74">&#34;hostedzone.yaml&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">Parameters</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">BaseDomain</span>: !<span style="color:#ae81ff">Ref BaseDomain</span></span></span></code></pre></div></div>
 </figure>
 
 <p>ParametersでBaseDomainを受け取るためにcloudformation実行時の引数である<strong>parameter-overrides</strong>にBaseDomainを追加してパラメータを渡す必要があります</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ aws cloudformation deploy <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --stack-name <span style="color:#e6db74">&#34;example-stack&#34;</span> <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --template-file packaged.yaml <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --parameter-overrides <span style="color:#e6db74">&#34;BaseDomain=example.com&#34;</span>
-</code></pre></div><p><a href="https://awscli.amazonaws.com/v2/documentation/api/latest/reference/cloudformation/deploy.html">CLIドキュメント</a>のparameter-overridesの項目によれば</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-txt" data-lang="txt">&#34;ParameterKey1=ParameterValue1&#34; &#34;ParameterKey2=ParameterValue2&#34; ...
-</code></pre></div><p>のようにダブルクウォートで囲った文字列を並べていくと。。。。<br>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ aws cloudformation deploy <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --stack-name <span style="color:#e6db74">&#34;example-stack&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --template-file packaged.yaml <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --parameter-overrides <span style="color:#e6db74">&#34;BaseDomain=example.com&#34;</span>
+</span></span></code></pre></div><p><a href="https://awscli.amazonaws.com/v2/documentation/api/latest/reference/cloudformation/deploy.html">CLIドキュメント</a>のparameter-overridesの項目によれば</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>&#34;ParameterKey1=ParameterValue1&#34; &#34;ParameterKey2=ParameterValue2&#34; ...
+</span></span></code></pre></div><p>のようにダブルクウォートで囲った文字列を並べていくと。。。。<br>
 パラメータが１つや２つであればいいのですが、今回冒頭で書いた通りすでに出来上がっている環境があるところに追加する場合はVPCのCIDR、VPCのID、サブネット・・・などパラメータがどんどん増えていきます</p>
 <h1 id="うーんつらい">うーん　つらい！</h1>
 <h3 id="つらいので何かいい方法がないか模索する">つらいので何かいい方法がないか模索する</h3>
@@ -188,34 +188,34 @@ cloudformationのスタックをネストさせるには<code>AWS::CloudFormatio
 
 <figure class="x-code-block">
     <figcaption class="x-code-block-title">development.cfg</figcaption>
-    <div class="x-code-block"><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">Environment=development
-BaseDomain=example.com
-....</code></pre></div></div>
+    <div class="x-code-block"><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Environment=development
+</span></span><span style="display:flex;"><span>BaseDomain=example.com
+</span></span><span style="display:flex;"><span>....</span></span></code></pre></div></div>
 </figure>
 
 <p>env形式のcfgファイルを作成し、cloudformation実行時にcatで呼び出す</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ aws cloudformation deploy <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --stack-name <span style="color:#e6db74">&#34;example-stack&#34;</span> <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --template-file packaged.yaml <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --parameter-overrides <span style="color:#66d9ef">$(</span>cat development.cfg<span style="color:#66d9ef">)</span>
-</code></pre></div><p>動いた！！！が、弊社で導入しているlintチェックに引っかかってしまいました。<a href="https://github.com/koalaman/shellcheck/wiki/SC2046" target="_blank">SC2046</a>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ aws cloudformation deploy <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --stack-name <span style="color:#e6db74">&#34;example-stack&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --template-file packaged.yaml <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --parameter-overrides <span style="color:#66d9ef">$(</span>cat development.cfg<span style="color:#66d9ef">)</span>
+</span></span></code></pre></div><p>動いた！！！が、弊社で導入しているlintチェックに引っかかってしまいました。<a href="https://github.com/koalaman/shellcheck/wiki/SC2046" target="_blank">SC2046</a>
 <br>
 このlintの回避策はダブルクオォートで囲うことです</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ aws cloudformation deploy <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --stack-name <span style="color:#e6db74">&#34;example-stack&#34;</span> <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --template-file packaged.yaml <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --parameter-overrides <span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>cat development.cfg<span style="color:#66d9ef">)</span><span style="color:#e6db74">&#34;</span>
-</code></pre></div><p>lintチェックの警告が消えた！やったーと思っていたらどうも挙動がおかしい<br>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ aws cloudformation deploy <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --stack-name <span style="color:#e6db74">&#34;example-stack&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --template-file packaged.yaml <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --parameter-overrides <span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>cat development.cfg<span style="color:#66d9ef">)</span><span style="color:#e6db74">&#34;</span>
+</span></span></code></pre></div><p>lintチェックの警告が消えた！やったーと思っていたらどうも挙動がおかしい<br>
 コマンド実行時のログをよく見ていると</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ aws cloudformation deploy <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --stack-name <span style="color:#e6db74">&#34;example-stack&#34;</span> <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --template-file packaged.yaml <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --parameter-overrides <span style="color:#e6db74">&#39;Environment=development
-</span><span style="color:#e6db74">BaseDomain=example.com&#39;</span>
-</code></pre></div><p>シングルクウォートで囲われて1つの文字列になってしまいエラーになります</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ aws cloudformation deploy <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --stack-name <span style="color:#e6db74">&#34;example-stack&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --template-file packaged.yaml <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --parameter-overrides <span style="color:#e6db74">&#39;Environment=development
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">BaseDomain=example.com&#39;</span>
+</span></span></code></pre></div><p>シングルクウォートで囲われて1つの文字列になってしまいエラーになります</p>
 <p>ここで残された選択肢としては２つ</p>
 <ol>
 <li>このlintチェックは無視する</li>
@@ -274,16 +274,16 @@ githubを検索していたら面白いissueを発見しました</p>
 
 <figure class="x-code-block">
     <figcaption class="x-code-block-title">development.json</figcaption>
-    <div class="x-code-block"><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
-    {
-        <span style="color:#f92672">&#34;ParameterKey&#34;</span>: <span style="color:#e6db74">&#34;Environment&#34;</span>,
-        <span style="color:#f92672">&#34;ParameterValue&#34;</span>: <span style="color:#e6db74">&#34;development&#34;</span>
-    },
-    {
-        <span style="color:#f92672">&#34;ParameterKey&#34;</span>: <span style="color:#e6db74">&#34;BaseDomain&#34;</span>,
-        <span style="color:#f92672">&#34;ParameterValue&#34;</span>: <span style="color:#e6db74">&#34;example.com&#34;</span>
-    }
-]</code></pre></div></div>
+    <div class="x-code-block"><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>[
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ParameterKey&#34;</span>: <span style="color:#e6db74">&#34;Environment&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ParameterValue&#34;</span>: <span style="color:#e6db74">&#34;development&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ParameterKey&#34;</span>: <span style="color:#e6db74">&#34;BaseDomain&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;ParameterValue&#34;</span>: <span style="color:#e6db74">&#34;example.com&#34;</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>]</span></span></code></pre></div></div>
 </figure>
 
 または
@@ -291,25 +291,25 @@ githubを検索していたら面白いissueを発見しました</p>
 
 <figure class="x-code-block">
     <figcaption class="x-code-block-title">development.json</figcaption>
-    <div class="x-code-block"><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[
-    <span style="color:#e6db74">&#34;Environment&#34;</span><span style="color:#960050;background-color:#1e0010">:</span> <span style="color:#e6db74">&#34;development&#34;</span>,
-    <span style="color:#e6db74">&#34;BaseDomain&#34;</span><span style="color:#960050;background-color:#1e0010">:</span> <span style="color:#e6db74">&#34;example.com&#34;</span>
-]</code></pre></div></div>
+    <div class="x-code-block"><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>[
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;Environment&#34;</span><span style="color:#960050;background-color:#1e0010">:</span> <span style="color:#e6db74">&#34;development&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;BaseDomain&#34;</span><span style="color:#960050;background-color:#1e0010">:</span> <span style="color:#e6db74">&#34;example.com&#34;</span>
+</span></span><span style="display:flex;"><span>]</span></span></code></pre></div></div>
 </figure>
 </p>
 <p>ParameterKeyとParameterValueを入れたオブジェクトの配列にする必要があります。<br>
 ParameterKeyとParameterValue以外の文字列を入れた場合は例外が発生しますので注意が必要です</p>
 <p>以下がエラー詳細です</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-txt" data-lang="txt">JSON passed to --parameter-overrides must be one of the formats: [&#34;Key1=Value1&#34;,&#34;Key2=Value2&#34;, ...] , [{&#34;ParameterKey&#34;: &#34;Key1&#34;, &#34;ParameterValue&#34;: &#34;Value1&#34;}, ...] , [&#34;Parameters&#34;: {&#34;Key1&#34;: &#34;Value1&#34;, &#34;Key2&#34;: &#34;Value2&#34;, ...}]
-</code></pre></div><p>jsonを単純にcatで呼び出した場合シングルクウォートで囲まれてしまう問題が再発してしまいます
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>JSON passed to --parameter-overrides must be one of the formats: [&#34;Key1=Value1&#34;,&#34;Key2=Value2&#34;, ...] , [{&#34;ParameterKey&#34;: &#34;Key1&#34;, &#34;ParameterValue&#34;: &#34;Value1&#34;}, ...] , [&#34;Parameters&#34;: {&#34;Key1&#34;: &#34;Value1&#34;, &#34;Key2&#34;: &#34;Value2&#34;, ...}]
+</span></span></code></pre></div><p>jsonを単純にcatで呼び出した場合シングルクウォートで囲まれてしまう問題が再発してしまいます
 <code>file://</code>でファイルを直接指定できるそうなのでそちらで指定すればダブルクウォートの問題も解決できます</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ aws cloudformation deploy <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --stack-name <span style="color:#e6db74">&#34;example-stack&#34;</span> <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --template-file packaged.yaml <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>    --parameter-overrides <span style="color:#e6db74">&#34;file://development.json&#34;</span>
-</code></pre></div><p>やったね！</p>
-<h1 id="-ωウオオオオオアアアーーーッ">＼( ‘ω')／ウオオオオオアアアーーーッ！</h1>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ aws cloudformation deploy <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --stack-name <span style="color:#e6db74">&#34;example-stack&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --template-file packaged.yaml <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    --parameter-overrides <span style="color:#e6db74">&#34;file://development.json&#34;</span>
+</span></span></code></pre></div><p>やったね！</p>
+<h1 id="-ωウオオオオオアアアーーーッ">＼( ‘ω&rsquo;)／ウオオオオオアアアーーーッ！</h1>
 <h2 id="最後に">最後に</h2>
 <p>ブログを書いている最中に気づいてしまったのですが</p>
 <p>当初下記URLのドキュメントを読んで書いていました<br>
@@ -318,9 +318,9 @@ ParameterKeyとParameterValue以外の文字列を入れた場合は例外が発
 <p>最新のaws cli v2のURLは下記URLになります<br>
 <a href="https://awscli.amazonaws.com/v2/documentation/api/latest/reference/cloudformation/deploy/index.html">https://awscli.amazonaws.com/v2/documentation/api/latest/reference/cloudformation/deploy/index.html</a></p>
 <p>最新の方には</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">--parameter-overrides (string) A list of parameter structures that specify input parameters for your stack template. (省略)  
- or JSON file (see Examples)
-</code></pre></div><p>しっかりJSON file と書いてありました(Exampleも綺麗でした)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>--parameter-overrides (string) A list of parameter structures that specify input parameters for your stack template. (省略)  
+</span></span><span style="display:flex;"><span> or JSON file (see Examples)
+</span></span></code></pre></div><p>しっかりJSON file と書いてありました(Exampleも綺麗でした)</p>
 <p>公式ドキュメントを読む時はCLIのバージョンをしっかり確認しようと思いました。</p>
 <hr>
 <p>明日は<a href="https://qiita.com/advent-calendar/2021/fuller-inc" target="_blank">フラー株式会社 Advent Calendar 2021</a>
