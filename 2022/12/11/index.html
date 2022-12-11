@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  
+<meta property="og:url" content="https://blog.zitaku.net/2022/12/11/" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="X-Accel-RedirectとgoでS3ファイルに認証をつけて配信する方法" />
+<meta property="og:description" content="この記事は フラー株式会社 Advent Calendar 2022
+ 11日目の記事です。
+10日目は @nnsnodnb
+ さんで Firebase App Distribution で配信するための CircleCI Orb を自作した
+ でした。
+はじめに
+早いもので前回のブログから1年経ってしまいました。(去年も同じこと言ってる)
+毎年のことながらブログを書く前にhugoのアップデートとCIのアップデートにばかり時間を使ってしまいました。
+来年はこれだけで記事がかけるかもしれない
+さて、今回もとある案件でのお話です。
+今回は静的コンテンツを特定の認証されたユーザーのみに配信するという要件がありました。(よくありますね！)
+かんたんにPrivateなS3バケットのコンテンツを安全に配信できる方法ないかな〜とぼんやり考えていた時にあることを思い出しました。それは2021年のISUCON予選の振り返り会をしている時に、@sora_hさんが「実は認証のみアプリケーションで行い画像の配信はnginxで行えたんですよ〜」という話をしていて「そんなことできるのか！すげぇ〜」と感動したことがあったのです。
+当時はDBにバイナリーで格納されている画像ファイルをエクスポートしてnginxで配布することでDBサーバーへの負荷軽減につながるという話だったのですが、まさかこんな形で業務で使うことになるとはISUCON様様です。
+今回はマネーフォワードさんのテックブログのS3のファイルをX-Accel-Redirectで配信する
+を参考にgoで実装してみます" />
+
+<meta name="twitter:title" content="X-Accel-RedirectとgoでS3ファイルに認証をつけて配信する方法">
+<meta name="twitter:description" content="この記事は フラー株式会社 Advent Calendar 2022
+ 11日目の記事です。
+10日目は @nnsnodnb
+ さんで Firebase App Distribution で配信するための CircleCI Orb を自作した
+ でした。
+はじめに
+早いもので前回のブログから1年経ってしまいました。(去年も同じこと言ってる)
+毎年のことながらブログを書く前にhugoのアップデートとCIのアップデートにばかり時間を使ってしまいました。
+来年はこれだけで記事がかけるかもしれない
+さて、今回もとある案件でのお話です。
+今回は静的コンテンツを特定の認証されたユーザーのみに配信するという要件がありました。(よくありますね！)
+かんたんにPrivateなS3バケットのコンテンツを安全に配信できる方法ないかな〜とぼんやり考えていた時にあることを思い出しました。それは2021年のISUCON予選の振り返り会をしている時に、@sora_hさんが「実は認証のみアプリケーションで行い画像の配信はnginxで行えたんですよ〜」という話をしていて「そんなことできるのか！すげぇ〜」と感動したことがあったのです。
+当時はDBにバイナリーで格納されている画像ファイルをエクスポートしてnginxで配布することでDBサーバーへの負荷軽減につながるという話だったのですが、まさかこんな形で業務で使うことになるとはISUCON様様です。
+今回はマネーフォワードさんのテックブログのS3のファイルをX-Accel-Redirectで配信する
+を参考にgoで実装してみます">
+
+
+<meta name="twitter:site" content="@Gaku07jp" />
+<meta name="twitter:creator" content="@Gaku07jp" />
+
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="https://blog.zitaku.net/2022/12/11/cover.png">
+<meta name="twitter:image" content="https://blog.zitaku.net/2022/12/11/cover.png">
+
+
+  
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1N1QDGEHGN"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-1N1QDGEHGN');
+</script>
+
+
+
+<meta charset="utf-8" />
+<meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1' />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css?family=Galindo" rel="stylesheet">
+
+<title>X-Accel-RedirectとgoでS3ファイルに認証をつけて配信する方法 - GakuBlog</title>
+
+
+<link rel="stylesheet" href="/scss/site.css" integrity="" media="screen">
+
+</head>
+
+<body>
+  <header class='header'>
+  <h1><a href='/'>GakuBlog</a></h1>
+  <ul class='service-icons'>
+  <li class='service-icon'><a target="_blank" class='twitter' href='https://twitter.com/Gaku07jp'><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" height="480" width="480"><path transform="matrix(1.25,0,0,-1.25,0,480)" d="m 319.23265,257.24794 c 0.1216,-2.81531 0.1984,-5.64341 0.1984,-8.49071 C 319.43105,162.02018 253.39077,62 132.63799,62 95.563528,62 61.055418,72.87732 31.999999,91.496739 c 5.132697,-0.601454 10.361393,-0.921371 15.660487,-0.921371 30.757785,0 59.064424,10.493412 81.534374,28.101882 -28.73543,0.52467 -52.971745,19.5088 -61.329978,45.58877 4.01272,-0.7742 8.121438,-1.1837 12.358153,-1.1837 5.98388,0 11.788564,0.8062 17.292454,2.30343 -30.034599,6.02732 -52.664547,32.55519 -52.664547,64.35536 0,0.28153 0,0.55026 0.0064,0.8254 8.851023,-4.90759 18.975621,-7.86366 29.733806,-8.20919 -17.612448,11.77311 -29.202617,31.85777 -29.202617,54.63616 0,12.02264 3.238336,23.30306 8.889423,32.99668 32.383352,-39.71502 80.753586,-65.83979 135.318896,-68.58472 -1.11998,4.80522 -1.69597,9.82159 -1.69597,14.95951 0,36.24709 29.38821,65.63505 65.64989,65.63505 18.88602,0 35.94808,-7.96604 47.92224,-20.72449 14.9501,2.94327 28.99782,8.40113 41.68237,15.92568 -4.89591,-15.33064 -15.3085,-28.18507 -28.86343,-36.31107 13.27334,1.58681 25.93228,5.11234 37.70805,10.33346 -8.81262,-13.16796 -19.9356,-24.72992 -32.76095,-33.97564 z"/></svg>
+</a></li>
+  <li class='service-icon'><a target="_blank" class='github' href='https://github.com/ManabuSeki'><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" height="480" width="480"><path transform="matrix(1.25,0,0,-1.25,0,480)" d="m 336,240.61116 c 0,22.71565 -8.13329,41.27381 -21.57259,55.84104 2.17534,5.2465 9.35329,26.39909 -2.05915,55.06591 0,0 -17.57695,5.59243 -57.59793,-21.32555 -16.75717,4.61232 -34.70851,6.92488 -52.5243,7.00816 -17.81579,-0.0833 -35.74778,-2.38944 -52.47268,-7.00816 -40.05971,26.91798 -57.662482,21.32555 -57.662482,21.32555 C 80.730709,322.8577 87.90221,301.6987 90.077543,296.4522 76.66406,281.87856 68.47267,263.3204 68.47267,240.61116 c 0,-79.72258 48.9547,-97.56327 95.52104,-102.82259 -5.99669,-5.19526 -11.4318,-14.37505 -13.3102,-27.82123 -11.96756,-5.31698 -42.31251,-14.509569 -61.012631,17.29618 0,0 -11.083229,19.98029 -32.139428,21.44726 0,0 -20.455885,0.26906 -1.43301,-12.65183 0,0 13.742688,-6.39318 23.276718,-30.44128 0,0 12.303224,-37.135539 70.630581,-24.547759 0.0904,-17.38587 0.28401,-44.11808 0.28401,-49.06991 l 103.95127,0 c 0,6.85441 0.24529,39.59544 0.24529,67.43589 0,19.410149 -6.70028,32.068399 -14.22036,38.532039 C 286.95494,143.11835 336,160.71561 336,240.62397 Z M 72.003554,139.07617 c -0.458306,-1.03777 -2.097875,-1.34526 -3.58898,-0.63419 -1.523378,0.67903 -2.368983,2.08835 -1.884858,3.12612 0.45185,1.0634 2.091419,1.35807 3.614799,0.65341 1.516923,-0.67903 2.388348,-2.10757 1.859039,-3.13893 z m 8.494775,-9.404 c -1.000525,-0.92246 -2.956389,-0.49326 -4.279663,0.9609 -1.374915,1.45416 -1.626659,3.38877 -0.613224,4.32405 1.032798,0.92246 2.930567,0.48685 4.299027,-0.9609 1.374914,-1.46697 1.639569,-3.38877 0.59386,-4.32405 z m 8.262396,-11.9728 c -1.284545,-0.88402 -3.388873,-0.056 -4.686328,1.79368 -1.284544,1.85133 -1.284544,4.06781 0.02582,4.95824 1.297455,0.88403 3.369508,0.0833 4.686328,-1.74884 1.284543,-1.88336 1.284543,-4.09983 -0.02582,-5.00308 z m 11.328515,-11.58203 c -1.148985,-1.25558 -3.601885,-0.92247 -5.389919,0.80075 -1.833219,1.67837 -2.343163,4.05499 -1.194174,5.31697 1.168354,1.25557 3.627709,0.90965 5.435108,-0.80075 1.820305,-1.67837 2.368985,-4.0678 1.148985,-5.31697 z m 15.6211,-6.726299 c -0.50995,-1.62712 -2.86602,-2.37021 -5.24146,-1.67837 -2.36899,0.71748 -3.92464,2.620059 -3.44051,4.266399 0.49058,1.63993 2.86601,2.41506 5.24791,1.67196 2.36898,-0.71107 3.92464,-2.60083 3.4276,-4.259989 z m 12.70988,-4.40732 c -2.50453,-0.056 -4.53786,1.33245 -4.56368,3.01722 0,1.73603 1.96878,3.138939 4.47977,3.183779 2.49163,0.0481 4.53786,-1.332439 4.53786,-3.036439 0.0516,-1.7104 -1.96232,-3.13893 -4.45395,-3.16456 z m 16.50543,2.01148 c -2.43353,-0.44201 -4.68632,0.58935 -4.99617,2.25491 -0.29692,1.716809 1.46529,3.440019 3.89237,3.882029 2.47872,0.42921 4.69924,-0.57653 5.01553,-2.28053 0.29693,-1.671959 -1.43946,-3.388769 -3.91173,-3.849999 z"/></svg>
+</a></li>
+</ul>
+
+</header>
+
+
+  <div class='main-container'>
+    <div class='articles'>
+      
+<article class='article'>
+  <div class='article-header'>
+    <p class='date'>
+      <time datetime=" 2022-12-10T00:00:00&#43;09:00">2022-12-10</time>
+    </p>
+    <h1><a href="/2022/12/11/">X-Accel-RedirectとgoでS3ファイルに認証をつけて配信する方法</a></h1>
+    <p class="tags">
+      
+      
+      <a href="/tags/aws/">AWS</a>
+      
+      
+      <a href="/tags/nginx/">nginx</a>
+      
+      
+      <a href="/tags/go/">go</a>
+      
+    </p>
+  </div>
+  <div class='article-body'>
+    <p>この記事は <a href="https://qiita.com/advent-calendar/2022/fuller-inc" target="_blank">フラー株式会社 Advent Calendar 2022</a>
+ 11日目の記事です。<br>
+10日目は <a href="https://qiita.com/nnsnodnb" target="_blank">@nnsnodnb</a>
+ さんで <a href="https://nnsnodnb.hatenablog.jp/entry/circleci-orbs-firebase-app-distribution" target="_blank">Firebase App Distribution で配信するための CircleCI Orb を自作した</a>
+ でした。</p>
+<h2 id="はじめに">はじめに</h2>
+<p>早いもので前回のブログから1年経ってしまいました。(去年も同じこと言ってる)<br>
+毎年のことながらブログを書く前にhugoのアップデートとCIのアップデートにばかり時間を使ってしまいました。<br>
+来年はこれだけで記事がかけるかもしれない</p>
+<p>さて、今回もとある案件でのお話です。<br>
+今回は静的コンテンツを特定の認証されたユーザーのみに配信するという要件がありました。(よくありますね！)<br>
+かんたんにPrivateなS3バケットのコンテンツを安全に配信できる方法ないかな〜とぼんやり考えていた時にあることを思い出しました。それは2021年のISUCON予選の振り返り会をしている時に、@sora_hさんが「実は認証のみアプリケーションで行い画像の配信はnginxで行えたんですよ〜」という話をしていて「そんなことできるのか！すげぇ〜」と感動したことがあったのです。<br>
+当時はDBにバイナリーで格納されている画像ファイルをエクスポートしてnginxで配布することでDBサーバーへの負荷軽減につながるという話だったのですが、まさかこんな形で業務で使うことになるとはISUCON様様です。</p>
+<p>今回はマネーフォワードさんのテックブログの<a href="https://qiita.com/advent-calendar/2022/fuller-inc" target="_blank">S3のファイルをX-Accel-Redirectで配信する</a>
+を参考にgoで実装してみます</p>
+<hr>
+<h2 id="hahahugoshortcode-s4-hbhbとは"><a href="https://www.nginx.com/resources/wiki/start/topics/examples/x-accel/" target="_blank">X-Accel-Redirect</a>
+とは</h2>
+<p>以下本家のドキュメントより引用</p>
+<blockquote>
+<p>X-accel allows for internal redirection to a location determined by a header returned from a backend.</p>
+<p>This allows you to handle authentication, logging or whatever else you please in your backend and then have NGINX handle serving the contents from redirected location to the end user, thus freeing up the backend to handle other requests. This feature is commonly known as X-Sendfile.</p>
+</blockquote>
+<p>&lt;翻訳&gt;<br>
+X-accelでは、バックエンドから返されるヘッダによって決定される場所への内部リダイレクトが可能です。</p>
+<p>これにより、バックエンドで認証、ログ、その他何でも処理し、NGINXにリダイレクトされた場所からエンドユーザーへのコンテンツを提供させ、
+バックエンドを他のリクエストの処理に解放させることができるようになります。この機能は一般的にX-Sendfileとして知られています。</p>
+<p>ということでX-Accelヘッダーを使うことで別の場所に内部的にリダイレクトさせることができるようです</p>
+<hr>
+<h3 id="今回やりたいこと">今回やりたいこと</h3>
+<ul>
+<li>ユーザーリクエストの認証をアプリケーション側で実施</li>
+<li>S3に格納されているファイルの配信はnginxで行う</li>
+</ul>
+<p>nginxからS3へのアクセスは署名付きURLでも可能ですが、上記記事でも触れられているようにURLが外部に漏洩した場合誰でも見れる状態になってしまう為、記事と同じく<a href="https://qiita.com/advent-calendar/2022/fuller-inc" target="_blank">AWS 署名バージョン4</a>
+で進めます。</p>
+<p>自分の中で整理する為に改めてシーケンスを書きました<br>
+<figure>
+  <img
+    class="article-image"
+     src="/2022/12/11/mermaid-diagram.svg" alt="シーケンス図" width="500px"/>
+</figure>
+</p>
+<p>やるべきことは以下の通り</p>
+<ol>
+<li>S3のバケット情報からAWS 署名v4 の認証情報を生成する　⑤</li>
+<li>生成した認証情報をアプリケーションのレスポンスヘッダーにセットしてnginxに渡す　⑦</li>
+<li>X-Accel-Redirectで指定されたパスの設定　⑧</li>
+</ol>
+<h2 id="1-aws-署名v4-の認証情報を生成する">1. AWS 署名v4 の認証情報を生成する</h2>
+<p>はじめに⑤のAWS 署名バージョン4で署名する部分です<br>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a href="https://gist.github.com/ManabuSeki/df07c8e40dffb94072805c64e1ed8375" class="external-link-github" target="_blank">
+  <img class="external-link-github-avatar" src="https://avatars1.githubusercontent.com/u/7938885?s=460&amp;u=b07e16fde33daeb1c0f81c9c512499f2d890561b&amp;v=4" />
+  <span class="external-link-github-title">gits/main.go</span>
+  <span class="external-link-github-description">AWS 署名v4の認証情報取得サンプル</span>
+  <span class="external-link-github-service">github.com</span>
+</a>
+
+</p>
+<h3 id="11-signerを初期化">1.1 signerを初期化</h3>
+<p><strong>実行するロールにS3の参照権限が必要です</strong></p>
+
+
+
+
+<figure class="x-code-block">
+    <figcaption class="x-code-block-title">main.go</figcaption>
+    <div class="x-code-block">
+        <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>  	<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">LoadDefaultConfig</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">WithRegion</span>(<span style="color:#e6db74">&#34;ap-northeast-1&#34;</span>))
+</span></span><span style="display:flex;"><span>  	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>  		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>  	}
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  	<span style="color:#a6e22e">signer</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v4</span>.<span style="color:#a6e22e">NewSigner</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">signer</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">v4</span>.<span style="color:#a6e22e">SignerOptions</span>) {
+</span></span><span style="display:flex;"><span>  		<span style="color:#a6e22e">signer</span>.<span style="color:#a6e22e">DisableURIPathEscaping</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  	})
+</span></span><span style="display:flex;"><span>  	<span style="color:#a6e22e">cred</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">Credentials</span>.<span style="color:#a6e22e">Retrieve</span>(<span style="color:#a6e22e">ctx</span>)
+</span></span><span style="display:flex;"><span>  	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>  		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>  	}</span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+</figure>
+
+<h3 id="12-urlへアクセスする為の認証情報を作成">1.2 URLへアクセスする為の認証情報を作成</h3>
+<p>シーケンス図⑤のnginxがS3へリクエストする為に必要な認証情報の作成をします<br>
+<code>signer.SignHTTP</code>に渡したreqに認証用のヘッダーがセットされます</p>
+
+
+
+
+<figure class="x-code-block">
+    <figcaption class="x-code-block-title">main.go</figcaption>
+    <div class="x-code-block">
+        <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>  	<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">NewRequestWithContext</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">MethodGet</span>, <span style="color:#a6e22e">originalURL</span>.<span style="color:#a6e22e">String</span>(), <span style="color:#66d9ef">nil</span>)
+</span></span><span style="display:flex;"><span>  	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>  		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>  	}
+</span></span><span style="display:flex;"><span>  	<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;X-Amz-Expires&#34;</span>, <span style="color:#a6e22e">expireStr</span>)
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  	<span style="color:#a6e22e">now</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">signer</span>.<span style="color:#a6e22e">SignHTTP</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">cred</span>, <span style="color:#a6e22e">req</span>, <span style="color:#e6db74">&#34;UNSIGNED-PAYLOAD&#34;</span>, <span style="color:#e6db74">&#34;s3&#34;</span>, <span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">Region</span>, <span style="color:#a6e22e">now</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>  		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>  	}</span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+</figure>
+
+<p>これで認証情報の生成が完了しました。<br>
+このサンプルではcurlコマンドを利用して動作確認していますが実際はレスポンスヘッダーに各値を追加する必要があります。</p>
+<h2 id="2-生成した認証情報をレスポンスヘッダーにセットする">2. 生成した認証情報をレスポンスヘッダーにセットする</h2>
+<p>例：<code>http.Header</code>を受け取りレスポンスヘッダーにセットする</p>
+
+
+
+
+<figure class="x-code-block">
+    <figcaption class="x-code-block-title">handler.go</figcaption>
+    <div class="x-code-block">
+        <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>  <span style="color:#a6e22e">headers</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">GetSignHeader</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">url</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">MethodGet</span>, <span style="color:#a6e22e">sign</span>.<span style="color:#a6e22e">UnsignedPayload</span>, <span style="color:#e6db74">&#34;s3&#34;</span>) <span style="color:#75715e">// main.goの処理をメソッド化
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>  	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">headers</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#e6db74">&#34;signed-url&#34;</span>, <span style="color:#a6e22e">url</span>)            <span style="color:#75715e">// S3のURL
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">headers</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#e6db74">&#34;X-Accel-Redirect&#34;</span>, <span style="color:#e6db74">&#34;/files&#34;</span>) <span style="color:#75715e">// 今回用意したnginxX-Accel-Redirect用のパス
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">headers</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#e6db74">&#34;X-Amz-Content-Sha256&#34;</span>, <span style="color:#e6db74">&#34;UNSIGNED-PAYLOAD&#34;</span>)
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">k</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">headers</span> {
+</span></span><span style="display:flex;"><span>  	<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">ResponseData</span>.<span style="color:#a6e22e">Header</span>().<span style="color:#a6e22e">Set</span>(<span style="color:#a6e22e">k</span>, <span style="color:#a6e22e">headers</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">k</span>))
+</span></span><span style="display:flex;"><span>  }</span></span></code></pre></div>
+    </div>
+</figure>
+
+<h2 id="3-x-accel-redirectで指定されたパスの設定">3. X-Accel-Redirectで指定されたパスの設定</h2>
+<p>アプリケーションでレスポンスヘッダーに設定した値を<code>proxy_set_header</code>でセットし直します</p>
+
+
+
+
+<figure class="x-code-block">
+    <figcaption class="x-code-block-title">nginx.conf</figcaption>
+    <div class="x-code-block">
+        <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span>  <span style="color:#66d9ef">resolver</span> <span style="color:#ae81ff">169</span><span style="color:#e6db74">.254.169.253</span> <span style="color:#e6db74">valid=5s</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">server{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">...</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">location</span> = <span style="color:#e6db74">/files</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">internal</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">set</span> $x_amz_date $upstream_http_x_amz_date;
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">set</span> $x_amz_security_token $upstream_http_x_amz_security_token;
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">set</span> $x_amz_content_sha256 $upstream_http_x_amz_content_sha256;
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">set</span> $authorization $upstream_http_authorization;
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">set</span> $signed_url $upstream_http_signed_url;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">proxy_set_header</span> <span style="color:#e6db74">x-amz-date</span> $x_amz_date;
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">proxy_set_header</span> <span style="color:#e6db74">x-amz-security-token</span> $x_amz_security_token;
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">proxy_set_header</span> <span style="color:#e6db74">x-amz-content-sha256</span> $x_amz_content_sha256;
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">proxy_set_header</span> <span style="color:#e6db74">Authorization</span> $authorization;
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">proxy_pass</span> $signed_url;
+</span></span><span style="display:flex;"><span>  }</span></span></code></pre></div>
+    </div>
+</figure>
+
+<p>これでS3のファイルをX-Accel-Redirectを用いて取得することができるよになりました。</p>
+<h2 id="まとめ">まとめ</h2>
+<p>S3のURLを元にAWS 署名v4で認証情報を生成し、nginxのX-Accel−Redirectを使うことで認証情報を外部に漏洩させずにファイルを取得できるようになりました。<br>
+S3のファイルをX-Accel-Redirectで転送するためには以下の設定が必要です</p>
+<ol>
+<li>nginxからS3へのファイル参照をするためにアプリケーション側でAWS 署名v4を利用し認証情報を取得する</li>
+<li>レスポンスヘッダーに<code>X-Accel-Redirect</code>と取得した認証情報をセットする</li>
+<li>X-Accel-Redirect先の設定で<code>proxy_set_header</code>を利用してヘッダーをセットする</li>
+</ol>
+<h2 id="余談ハマったポイント">余談(ハマったポイント)</h2>
+<p>実装をする中でハマったことがありました。<br>
+手元のターミナルでは正しく取得できるが　サーバーにデプロイしたらS3から403が返却される事象に悩まされました。<br>
+原因は手元の実行ロールは管理者権限で動いており、S3ファイルを参照できる権限があったがサーバーには参照する権限がなかったため権限エラーになりました。<br>
+AWS 署名v4の認証情報の確認は<strong>接続した時に発行したロールの権限</strong>に依存します。<br>
+したがってサーバー側にアタッチメントしてるロールにS3の参照権限を事前に設定しておく必要があります。</p>
+<hr>
+<p>明日は<a href="https://qiita.com/advent-calendar/2022/fuller-inc" target="_blank">フラー株式会社 Advent Calendar 2022</a>
+ 12日目  <a href="https://qiita.com/nnsnodnb" target="_blank">@nnsnodnb</a>
+ さんで <a href="https://qiita.com/nnsnodnb" target="_blank"> を食べる</a>
+  です　お楽しみに〜</p>
+  </div>
+  <div class='article-footer'>
+
+    
+    <h3>あわせて読みたい</h3>
+    <ul>
+      
+      <li><a href="/2021/12/22/">CloudFormationのパラメータ管理をjsonにした話</a></li>
+      
+    </ul>
+    
+
+    <div class='social-buttons'>
+      <a
+  class='share-button'
+  style='background-image: url("data:image/svg+xml;charset%3DUS-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23FFF%22%20d%3D%22M28%208.557a9.913%209.913%200%200%201-2.828.775%204.93%204.93%200%200%200%202.166-2.725%209.738%209.738%200%200%201-3.13%201.194%204.92%204.92%200%200%200-3.593-1.55%204.924%204.924%200%200%200-4.794%206.049c-4.09-.21-7.72-2.17-10.15-5.15a4.942%204.942%200%200%200-.665%202.477c0%201.71.87%203.214%202.19%204.1a4.968%204.968%200%200%201-2.23-.616v.06c0%202.39%201.7%204.38%203.952%204.83-.414.115-.85.174-1.297.174-.318%200-.626-.03-.928-.086a4.935%204.935%200%200%200%204.6%203.42%209.893%209.893%200%200%201-6.114%202.107c-.398%200-.79-.023-1.175-.068a13.953%2013.953%200%200%200%207.55%202.213c9.056%200%2014.01-7.507%2014.01-14.013%200-.213-.005-.426-.015-.637.96-.695%201.795-1.56%202.455-2.55z%22%2F%3E%3C%2Fsvg%3E"); background-color: rgb(85, 172, 238)'
+     href="https://twitter.com/intent/tweet?text=X-Accel-Redirect%e3%81%a8go%e3%81%a7S3%e3%83%95%e3%82%a1%e3%82%a4%e3%83%ab%e3%81%ab%e8%aa%8d%e8%a8%bc%e3%82%92%e3%81%a4%e3%81%91%e3%81%a6%e9%85%8d%e4%bf%a1%e3%81%99%e3%82%8b%e6%96%b9%e6%b3%95 - GakuBlog https://blog.zitaku.net/2022/12/11/"
+  target="_blank"
+></a>
+
+      
+<a
+  class='share-button'
+  style='background-image: url("data:image/svg+xml;charset%3DUS-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cg%20fill%3D%22%23FFF%22%3E%3Cpath%20d%3D%22M6.96%208.33h7.328c1.247%200%202.206.366%202.875%201.098.666.733%201.002%201.64%201.002%202.72%200%20.91-.24%201.688-.715%202.336-.318.433-.784.773-1.396%201.023.928.266%201.614.72%202.05%201.367.44.645.66%201.457.66%202.432%200%20.795-.157%201.512-.468%202.146-.314.635-.74%201.14-1.28%201.508-.337.23-.842.396-1.52.502-.9.14-1.498.21-1.79.21H6.958V8.328zm3.877%206.017h1.74c.623%200%201.058-.13%201.302-.382.24-.255.362-.623.362-1.104%200-.44-.123-.79-.366-1.043-.245-.25-.67-.377-1.276-.377h-1.766v2.91zm0%206.027h2.038c.69%200%201.176-.145%201.458-.434.282-.29.425-.68.425-1.168%200-.453-.142-.818-.42-1.092-.28-.277-.77-.414-1.47-.414h-2.03v3.108zM21.213%208.52h3.584v9.58h-3.584z%22%2F%3E%3Ccircle%20cx%3D%2223.005%22%20cy%3D%2221.635%22%20r%3D%222.036%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); background-color: rgb(0, 166, 219)'
+  href="http://b.hatena.ne.jp/entry/s/blog.zitaku.net/2022/12/11/"
+  target="_blank"
+></a>
+
+      <a
+  class='share-button'
+  style='background-image: url("data:image/svg+xml;charset%3DUS-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23FFF%22%20d%3D%22M17.78%2027.5V17.008h3.522l.527-4.09h-4.05v-2.61c0-1.182.33-1.99%202.023-1.99h2.166V4.66c-.375-.05-1.66-.16-3.155-.16-3.123%200-5.26%201.905-5.26%205.405v3.016h-3.53v4.09h3.53V27.5h4.223z%22%2F%3E%3C%2Fsvg%3E"); background-color: rgb(59, 89, 152)'
+   href="https://www.facebook.com/share.php?u=https://blog.zitaku.net/2022/12/11/"
+  target="_blank"
+></a>
+
+
+    </div>
+
+    
+    
+    <a class="prev-article" href="/2021/12/22/">CloudFormationのパラメータ管理をjsonにした話 » </a>
+    
+  </div>
+</article>
+
+    </div>
+
+    <div class='asides'>
+  <aside class='aside'>
+    <h2>Author</h2>
+    <div style='text-align:center'>
+      <img class='profile_img' alt='筆者のプロフィール写真' src='/images/profile.png'>
+    </div>
+    <h3>Manabu Seki (@Gaku07jp)</h3>
+    <p>
+      フラー株式会社<br>
+      サーバーサイドエンジニア
+    </p>
+  </aside>
+
+  <aside class='aside'>
+    <h2>Recent Articles</h2>
+    <ol class='recent-articles'>
+      
+      <li class='recent-article'>
+        <p class='recent-article-date'>
+          <time datetime="2022-12-10T00:00:00&#43;09:00">2022-12-10</time>
+        </p>
+        <p class='recent-article-title'><a href="/2022/12/11/">X-Accel-RedirectとgoでS3ファイルに認証をつけて配信する方法</a></p>
+      </li>
+      
+      <li class='recent-article'>
+        <p class='recent-article-date'>
+          <time datetime="2021-12-22T00:00:00&#43;09:00">2021-12-22</time>
+        </p>
+        <p class='recent-article-title'><a href="/2021/12/22/">CloudFormationのパラメータ管理をjsonにした話</a></p>
+      </li>
+      
+      <li class='recent-article'>
+        <p class='recent-article-date'>
+          <time datetime="2020-12-05T00:00:00&#43;09:00">2020-12-05</time>
+        </p>
+        <p class='recent-article-title'><a href="/2020/12/12/">自動レビュー依頼のactionを作成しました</a></p>
+      </li>
+      
+      <li class='recent-article'>
+        <p class='recent-article-date'>
+          <time datetime="2019-12-13T00:00:00&#43;09:00">2019-12-13</time>
+        </p>
+        <p class='recent-article-title'><a href="/2019/12/13/">Blogをhugoに移行しました</a></p>
+      </li>
+      
+    </ol>
+  </aside>
+
+  <aside class='aside'>
+    <h2>Tags</h2>
+    <ol class='category-items'>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/aws/"> aws <small>(2)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/ci/"> ci <small>(1)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/github/"> github <small>(1)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/go/"> go <small>(1)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/hugo/"> hugo <small>(1)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/nginx/"> nginx <small>(1)</small></a>
+      </li>
+      
+    </ol>
+  </aside>
+
+  <aside class='aside'>
+    <h2>By Year</h2>
+    <ol class='category-items'>
+      
+      <li class='articles-item'><a href="/2022/">2022 <small>(1)</small></a></li>
+      
+      <li class='articles-item'><a href="/2021/">2021 <small>(1)</small></a></li>
+      
+      <li class='articles-item'><a href="/2020/">2020 <small>(1)</small></a></li>
+      
+      <li class='articles-item'><a href="/2019/">2019 <small>(1)</small></a></li>
+      
+    </ol>
+  </aside>
+</div>
+
+  </div>
+
+  <footer class='footer'>
+  <ul class='service-icons'>
+  <li class='service-icon'><a target="_blank" class='twitter' href='https://twitter.com/Gaku07jp'><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" height="480" width="480"><path transform="matrix(1.25,0,0,-1.25,0,480)" d="m 319.23265,257.24794 c 0.1216,-2.81531 0.1984,-5.64341 0.1984,-8.49071 C 319.43105,162.02018 253.39077,62 132.63799,62 95.563528,62 61.055418,72.87732 31.999999,91.496739 c 5.132697,-0.601454 10.361393,-0.921371 15.660487,-0.921371 30.757785,0 59.064424,10.493412 81.534374,28.101882 -28.73543,0.52467 -52.971745,19.5088 -61.329978,45.58877 4.01272,-0.7742 8.121438,-1.1837 12.358153,-1.1837 5.98388,0 11.788564,0.8062 17.292454,2.30343 -30.034599,6.02732 -52.664547,32.55519 -52.664547,64.35536 0,0.28153 0,0.55026 0.0064,0.8254 8.851023,-4.90759 18.975621,-7.86366 29.733806,-8.20919 -17.612448,11.77311 -29.202617,31.85777 -29.202617,54.63616 0,12.02264 3.238336,23.30306 8.889423,32.99668 32.383352,-39.71502 80.753586,-65.83979 135.318896,-68.58472 -1.11998,4.80522 -1.69597,9.82159 -1.69597,14.95951 0,36.24709 29.38821,65.63505 65.64989,65.63505 18.88602,0 35.94808,-7.96604 47.92224,-20.72449 14.9501,2.94327 28.99782,8.40113 41.68237,15.92568 -4.89591,-15.33064 -15.3085,-28.18507 -28.86343,-36.31107 13.27334,1.58681 25.93228,5.11234 37.70805,10.33346 -8.81262,-13.16796 -19.9356,-24.72992 -32.76095,-33.97564 z"/></svg>
+</a></li>
+  <li class='service-icon'><a target="_blank" class='github' href='https://github.com/ManabuSeki'><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" height="480" width="480"><path transform="matrix(1.25,0,0,-1.25,0,480)" d="m 336,240.61116 c 0,22.71565 -8.13329,41.27381 -21.57259,55.84104 2.17534,5.2465 9.35329,26.39909 -2.05915,55.06591 0,0 -17.57695,5.59243 -57.59793,-21.32555 -16.75717,4.61232 -34.70851,6.92488 -52.5243,7.00816 -17.81579,-0.0833 -35.74778,-2.38944 -52.47268,-7.00816 -40.05971,26.91798 -57.662482,21.32555 -57.662482,21.32555 C 80.730709,322.8577 87.90221,301.6987 90.077543,296.4522 76.66406,281.87856 68.47267,263.3204 68.47267,240.61116 c 0,-79.72258 48.9547,-97.56327 95.52104,-102.82259 -5.99669,-5.19526 -11.4318,-14.37505 -13.3102,-27.82123 -11.96756,-5.31698 -42.31251,-14.509569 -61.012631,17.29618 0,0 -11.083229,19.98029 -32.139428,21.44726 0,0 -20.455885,0.26906 -1.43301,-12.65183 0,0 13.742688,-6.39318 23.276718,-30.44128 0,0 12.303224,-37.135539 70.630581,-24.547759 0.0904,-17.38587 0.28401,-44.11808 0.28401,-49.06991 l 103.95127,0 c 0,6.85441 0.24529,39.59544 0.24529,67.43589 0,19.410149 -6.70028,32.068399 -14.22036,38.532039 C 286.95494,143.11835 336,160.71561 336,240.62397 Z M 72.003554,139.07617 c -0.458306,-1.03777 -2.097875,-1.34526 -3.58898,-0.63419 -1.523378,0.67903 -2.368983,2.08835 -1.884858,3.12612 0.45185,1.0634 2.091419,1.35807 3.614799,0.65341 1.516923,-0.67903 2.388348,-2.10757 1.859039,-3.13893 z m 8.494775,-9.404 c -1.000525,-0.92246 -2.956389,-0.49326 -4.279663,0.9609 -1.374915,1.45416 -1.626659,3.38877 -0.613224,4.32405 1.032798,0.92246 2.930567,0.48685 4.299027,-0.9609 1.374914,-1.46697 1.639569,-3.38877 0.59386,-4.32405 z m 8.262396,-11.9728 c -1.284545,-0.88402 -3.388873,-0.056 -4.686328,1.79368 -1.284544,1.85133 -1.284544,4.06781 0.02582,4.95824 1.297455,0.88403 3.369508,0.0833 4.686328,-1.74884 1.284543,-1.88336 1.284543,-4.09983 -0.02582,-5.00308 z m 11.328515,-11.58203 c -1.148985,-1.25558 -3.601885,-0.92247 -5.389919,0.80075 -1.833219,1.67837 -2.343163,4.05499 -1.194174,5.31697 1.168354,1.25557 3.627709,0.90965 5.435108,-0.80075 1.820305,-1.67837 2.368985,-4.0678 1.148985,-5.31697 z m 15.6211,-6.726299 c -0.50995,-1.62712 -2.86602,-2.37021 -5.24146,-1.67837 -2.36899,0.71748 -3.92464,2.620059 -3.44051,4.266399 0.49058,1.63993 2.86601,2.41506 5.24791,1.67196 2.36898,-0.71107 3.92464,-2.60083 3.4276,-4.259989 z m 12.70988,-4.40732 c -2.50453,-0.056 -4.53786,1.33245 -4.56368,3.01722 0,1.73603 1.96878,3.138939 4.47977,3.183779 2.49163,0.0481 4.53786,-1.332439 4.53786,-3.036439 0.0516,-1.7104 -1.96232,-3.13893 -4.45395,-3.16456 z m 16.50543,2.01148 c -2.43353,-0.44201 -4.68632,0.58935 -4.99617,2.25491 -0.29692,1.716809 1.46529,3.440019 3.89237,3.882029 2.47872,0.42921 4.69924,-0.57653 5.01553,-2.28053 0.29693,-1.671959 -1.43946,-3.388769 -3.91173,-3.849999 z"/></svg>
+</a></li>
+</ul>
+
+</footer>
+
+</body>
+
+</html>

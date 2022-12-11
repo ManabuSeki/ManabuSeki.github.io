@@ -366,7 +366,7 @@ textarea {
 
 html {
   font-size: 16x;
-  font-family: 'Helvetica Neue',Helvetica,Arial,'Hiragino Kaku Gothic Pro',Meiryo,'MS PGothic',sans-serif; }
+  font-family: 'Helvetica Neue', Helvetica, Arial, 'Hiragino Kaku Gothic Pro', Meiryo, 'MS PGothic', sans-serif; }
 
 a {
   text-decoration: none; }
@@ -438,7 +438,8 @@ table {
   margin: 1rem 0 2rem; }
   table th {
     text-align: center; }
-  table td, table th {
+  table td,
+  table th {
     padding: .5rem 1rem;
     border: 1px solid #ddd; }
   table tr:nth-child(even) {
@@ -490,9 +491,11 @@ kbd {
   right: 0; }
   .footer .service-icons .service-icon a {
     border: 1px solid #222; }
-  .footer .service-icons .service-icon a:link svg path, .footer .service-icons .service-icon a:visited svg path {
+  .footer .service-icons .service-icon a:link svg path,
+  .footer .service-icons .service-icon a:visited svg path {
     fill: #888; }
-  .footer .service-icons .service-icon a:hover svg path, .footer .service-icons .service-icon a:active svg path {
+  .footer .service-icons .service-icon a:hover svg path,
+  .footer .service-icons .service-icon a:active svg path {
     fill: white; }
 
 .service-icons {
@@ -516,15 +519,20 @@ kbd {
         vertical-align: middle; }
         .service-icons .service-icon a svg path {
           fill: #ccc; }
-    .service-icons .service-icon a:hover, .service-icons .service-icon a:active {
+    .service-icons .service-icon a:hover,
+    .service-icons .service-icon a:active {
       border-color: transparent; }
-      .service-icons .service-icon a:hover.twitter, .service-icons .service-icon a:active.twitter {
+      .service-icons .service-icon a:hover.twitter,
+      .service-icons .service-icon a:active.twitter {
         background-color: #55acee; }
-      .service-icons .service-icon a:hover.github, .service-icons .service-icon a:active.github {
+      .service-icons .service-icon a:hover.github,
+      .service-icons .service-icon a:active.github {
         background-color: #231f20; }
-      .service-icons .service-icon a:hover.qiita, .service-icons .service-icon a:active.qiita {
+      .service-icons .service-icon a:hover.qiita,
+      .service-icons .service-icon a:active.qiita {
         background-color: #59bb0c; }
-      .service-icons .service-icon a:hover path, .service-icons .service-icon a:active path {
+      .service-icons .service-icon a:hover path,
+      .service-icons .service-icon a:active path {
         fill: white; }
 
 .external-link-github {
@@ -624,6 +632,11 @@ kbd {
     border-top-style: solid;
     padding: 16px 0 32px;
     min-height: 32px; }
+    .article .article-footer h3 {
+      margin-top: 12px;
+      margin-bottom: 0px; }
+    .article .article-footer ul {
+      margin-top: 5px; }
     .article .article-footer .social-buttons {
       margin-bottom: 16px; }
       .article .article-footer .social-buttons .share-button {
@@ -762,7 +775,7 @@ kbd {
   margin-top: -1px; }
 
 .x-code-block pre {
-  padding: 0.5em;
+  padding: 0.1em;
   white-space: pre-wrap; }
 
 figure {

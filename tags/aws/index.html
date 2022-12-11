@@ -52,6 +52,28 @@
     
     <li class='summary-item'>
       <p class='date'>
+        <time datetime=" 2022-12-10T00:00:00&#43;09:00">2022-12-10</time>
+      </p>
+      <h2 class='title'><a href="/2022/12/11/">X-Accel-RedirectとgoでS3ファイルに認証をつけて配信する方法</a></h2>
+      <p class='body'><p>この記事は <a href="https://qiita.com/advent-calendar/2022/fuller-inc" target="_blank">フラー株式会社 Advent Calendar 2022</a>
+ 11日目の記事です。<br>
+10日目は <a href="https://qiita.com/nnsnodnb" target="_blank">@nnsnodnb</a>
+ さんで <a href="https://nnsnodnb.hatenablog.jp/entry/circleci-orbs-firebase-app-distribution" target="_blank">Firebase App Distribution で配信するための CircleCI Orb を自作した</a>
+ でした。</p>
+<h2 id="はじめに">はじめに</h2>
+<p>早いもので前回のブログから1年経ってしまいました。(去年も同じこと言ってる)<br>
+毎年のことながらブログを書く前にhugoのアップデートとCIのアップデートにばかり時間を使ってしまいました。<br>
+来年はこれだけで記事がかけるかもしれない</p>
+<p>さて、今回もとある案件でのお話です。<br>
+今回は静的コンテンツを特定の認証されたユーザーのみに配信するという要件がありました。(よくありますね！)<br>
+かんたんにPrivateなS3バケットのコンテンツを安全に配信できる方法ないかな〜とぼんやり考えていた時にあることを思い出しました。それは2021年のISUCON予選の振り返り会をしている時に、@sora_hさんが「実は認証のみアプリケーションで行い画像の配信はnginxで行えたんですよ〜」という話をしていて「そんなことできるのか！すげぇ〜」と感動したことがあったのです。<br>
+当時はDBにバイナリーで格納されている画像ファイルをエクスポートしてnginxで配布することでDBサーバーへの負荷軽減につながるという話だったのですが、まさかこんな形で業務で使うことになるとはISUCON様様です。</p>
+<p>今回はマネーフォワードさんのテックブログの<a href="https://qiita.com/advent-calendar/2022/fuller-inc" target="_blank">S3のファイルをX-Accel-Redirectで配信する</a>
+を参考にgoで実装してみます</p></p>
+    </li>
+    
+    <li class='summary-item'>
+      <p class='date'>
         <time datetime=" 2021-12-22T00:00:00&#43;09:00">2021-12-22</time>
       </p>
       <h2 class='title'><a href="/2021/12/22/">CloudFormationのパラメータ管理をjsonにした話</a></h2>
@@ -98,6 +120,13 @@
       
       <li class='recent-article'>
         <p class='recent-article-date'>
+          <time datetime="2022-12-10T00:00:00&#43;09:00">2022-12-10</time>
+        </p>
+        <p class='recent-article-title'><a href="/2022/12/11/">X-Accel-RedirectとgoでS3ファイルに認証をつけて配信する方法</a></p>
+      </li>
+      
+      <li class='recent-article'>
+        <p class='recent-article-date'>
           <time datetime="2021-12-22T00:00:00&#43;09:00">2021-12-22</time>
         </p>
         <p class='recent-article-title'><a href="/2021/12/22/">CloudFormationのパラメータ管理をjsonにした話</a></p>
@@ -126,7 +155,7 @@
       
       
       <li class='articles-item'>
-        <a href="/tags/aws/"> aws <small>(1)</small></a>
+        <a href="/tags/aws/"> aws <small>(2)</small></a>
       </li>
       
       
@@ -141,7 +170,17 @@
       
       
       <li class='articles-item'>
+        <a href="/tags/go/"> go <small>(1)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
         <a href="/tags/hugo/"> hugo <small>(1)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/nginx/"> nginx <small>(1)</small></a>
       </li>
       
     </ol>
@@ -150,6 +189,8 @@
   <aside class='aside'>
     <h2>By Year</h2>
     <ol class='category-items'>
+      
+      <li class='articles-item'><a href="/2022/">2022 <small>(1)</small></a></li>
       
       <li class='articles-item'><a href="/2021/">2021 <small>(1)</small></a></li>
       

@@ -22,9 +22,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://fonts.googleapis.com/css?family=Galindo" rel="stylesheet">
 
-<title>CI - GakuBlog</title>
+<title>nginx - GakuBlog</title>
 
-<link rel="alternate" type="application/rss&#43;xml" href="https://blog.zitaku.net/tags/ci/index.xml" title="$.Site.Title" />
+<link rel="alternate" type="application/rss&#43;xml" href="https://blog.zitaku.net/tags/nginx/index.xml" title="$.Site.Title" />
 
 <link rel="stylesheet" href="/scss/site.css" integrity="" media="screen">
 
@@ -47,25 +47,29 @@
     <div class='articles'>
       
 <div class='summaries'>
-  <h1>&ldquo;CI&rdquo; タグのついた記事</h1>
+  <h1>&ldquo;nginx&rdquo; タグのついた記事</h1>
   <ul class='summary-items'>
     
     <li class='summary-item'>
       <p class='date'>
-        <time datetime=" 2020-12-05T00:00:00&#43;09:00">2020-12-05</time>
+        <time datetime=" 2022-12-10T00:00:00&#43;09:00">2022-12-10</time>
       </p>
-      <h2 class='title'><a href="/2020/12/12/">自動レビュー依頼のactionを作成しました</a></h2>
-      <p class='body'><p>この記事は <a href="https://adventar.org/calendars/5034" target="_blank">フラー Advent Calendar 2020</a>
- 12日目の記事です。<br>
-11日目はFumio Takeuchiさんで<a href="https://qiita.com/ftaked/items/3cfef676e04b18d20d6e" target="_blank">プログラマ1年目のPR指摘事項を振り返ってみる</a>
-でした。</p>
-<hr>
-<p>前回から一年たってしまいました。古いBlog記事の移行もできてません、ごめんなさい(コピペだけで動くと思ったら動かなかった)<br>
-懺悔はここまで</p>
-<p>弊社は開発にGitHubを利用し、ソースコードの修正はプルリクエスト(以降　PR)をレビューしてもらう文化があります。<br>
-今まではPRを作成し、reviewersを毎回指定していました。</p>
-<p>1年半前まではレビュアーは自分含めて3人しかおらず、毎回同じ人がレビューをしていたので問題ありませんでしたが、喜ばしいことにサーバーサイドエンジニアの入社が続々と。。。<br>
-人数が増えたので固定していたレビューをランダムにすることにしました。</p></p>
+      <h2 class='title'><a href="/2022/12/11/">X-Accel-RedirectとgoでS3ファイルに認証をつけて配信する方法</a></h2>
+      <p class='body'><p>この記事は <a href="https://qiita.com/advent-calendar/2022/fuller-inc" target="_blank">フラー株式会社 Advent Calendar 2022</a>
+ 11日目の記事です。<br>
+10日目は <a href="https://qiita.com/nnsnodnb" target="_blank">@nnsnodnb</a>
+ さんで <a href="https://nnsnodnb.hatenablog.jp/entry/circleci-orbs-firebase-app-distribution" target="_blank">Firebase App Distribution で配信するための CircleCI Orb を自作した</a>
+ でした。</p>
+<h2 id="はじめに">はじめに</h2>
+<p>早いもので前回のブログから1年経ってしまいました。(去年も同じこと言ってる)<br>
+毎年のことながらブログを書く前にhugoのアップデートとCIのアップデートにばかり時間を使ってしまいました。<br>
+来年はこれだけで記事がかけるかもしれない</p>
+<p>さて、今回もとある案件でのお話です。<br>
+今回は静的コンテンツを特定の認証されたユーザーのみに配信するという要件がありました。(よくありますね！)<br>
+かんたんにPrivateなS3バケットのコンテンツを安全に配信できる方法ないかな〜とぼんやり考えていた時にあることを思い出しました。それは2021年のISUCON予選の振り返り会をしている時に、@sora_hさんが「実は認証のみアプリケーションで行い画像の配信はnginxで行えたんですよ〜」という話をしていて「そんなことできるのか！すげぇ〜」と感動したことがあったのです。<br>
+当時はDBにバイナリーで格納されている画像ファイルをエクスポートしてnginxで配布することでDBサーバーへの負荷軽減につながるという話だったのですが、まさかこんな形で業務で使うことになるとはISUCON様様です。</p>
+<p>今回はマネーフォワードさんのテックブログの<a href="https://qiita.com/advent-calendar/2022/fuller-inc" target="_blank">S3のファイルをX-Accel-Redirectで配信する</a>
+を参考にgoで実装してみます</p></p>
     </li>
     
   </ul>
