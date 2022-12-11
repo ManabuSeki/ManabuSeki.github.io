@@ -26,7 +26,7 @@
 今回は静的コンテンツを特定の認証されたユーザーのみに配信するという要件がありました。(よくありますね！)&lt;br&gt;
 かんたんにPrivateなS3バケットのコンテンツを安全に配信できる方法ないかな〜とぼんやり考えていた時にあることを思い出しました。それは2021年のISUCON予選の振り返り会をしている時に、@sora_hさんが「実は認証のみアプリケーションで行い画像の配信はnginxで行えたんですよ〜」という話をしていて「そんなことできるのか！すげぇ〜」と感動したことがあったのです。&lt;br&gt;
 当時はDBにバイナリーで格納されている画像ファイルをエクスポートしてnginxで配布することでDBサーバーへの負荷軽減につながるという話だったのですが、まさかこんな形で業務で使うことになるとはISUCON様様です。&lt;/p&gt;
-&lt;p&gt;今回はマネーフォワードさんのテックブログの&lt;a href=&#34;https://qiita.com/advent-calendar/2022/fuller-inc&#34; target=&#34;_blank&#34;&gt;S3のファイルをX-Accel-Redirectで配信する&lt;/a&gt;
+&lt;p&gt;今回はマネーフォワードさんのテックブログ&lt;a href=&#34;https://qiita.com/advent-calendar/2022/fuller-inc&#34; target=&#34;_blank&#34;&gt;S3のファイルをX-Accel-Redirectで配信する&lt;/a&gt;
 を参考にgoで実装してみます&lt;/p&gt;</description>
     </item>
     
