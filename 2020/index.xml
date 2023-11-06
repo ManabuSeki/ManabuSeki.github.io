@@ -6,12 +6,12 @@
     <description>Recent content in 2020 on GakuBlog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Sat, 05 Dec 2020 00:00:00 +0900</lastBuildDate><atom:link href="https://blog.zitaku.net/2020/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 05 Dec 2020 00:00:00 +0900</lastBuildDate>
+    <atom:link href="https://blog.zitaku.net/2020/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>自動レビュー依頼のactionを作成しました</title>
       <link>https://blog.zitaku.net/2020/12/12/</link>
       <pubDate>Sat, 05 Dec 2020 00:00:00 +0900</pubDate>
-      
       <guid>https://blog.zitaku.net/2020/12/12/</guid>
       <description>&lt;p&gt;この記事は &lt;a href=&#34;https://adventar.org/calendars/5034&#34; target=&#34;_blank&#34;&gt;フラー Advent Calendar 2020&lt;/a&gt;
  12日目の記事です。&lt;br&gt;
@@ -25,6 +25,5 @@
 &lt;p&gt;1年半前まではレビュアーは自分含めて3人しかおらず、毎回同じ人がレビューをしていたので問題ありませんでしたが、喜ばしいことにサーバーサイドエンジニアの入社が続々と。。。&lt;br&gt;
 人数が増えたので固定していたレビューをランダムにすることにしました。&lt;/p&gt;</description>
     </item>
-    
   </channel>
 </rss>

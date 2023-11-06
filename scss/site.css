@@ -525,6 +525,9 @@ kbd {
       .service-icons .service-icon a:hover.twitter,
       .service-icons .service-icon a:active.twitter {
         background-color: #55acee; }
+      .service-icons .service-icon a:hover.x,
+      .service-icons .service-icon a:active.x {
+        background-color: #000000; }
       .service-icons .service-icon a:hover.github,
       .service-icons .service-icon a:active.github {
         background-color: #231f20; }

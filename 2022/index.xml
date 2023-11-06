@@ -6,12 +6,12 @@
     <description>Recent content in 2022 on GakuBlog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Sat, 10 Dec 2022 00:00:00 +0900</lastBuildDate><atom:link href="https://blog.zitaku.net/2022/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 10 Dec 2022 00:00:00 +0900</lastBuildDate>
+    <atom:link href="https://blog.zitaku.net/2022/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>X-Accel-RedirectとgoでS3ファイルに認証をつけて配信する方法</title>
       <link>https://blog.zitaku.net/2022/12/11/</link>
       <pubDate>Sat, 10 Dec 2022 00:00:00 +0900</pubDate>
-      
       <guid>https://blog.zitaku.net/2022/12/11/</guid>
       <description>&lt;p&gt;この記事は &lt;a href=&#34;https://qiita.com/advent-calendar/2022/fuller-inc&#34; target=&#34;_blank&#34;&gt;フラー株式会社 Advent Calendar 2022&lt;/a&gt;
  11日目の記事です。&lt;br&gt;
@@ -29,6 +29,5 @@
 &lt;p&gt;今回はマネーフォワードさんのテックブログ&lt;a href=&#34;https://qiita.com/advent-calendar/2022/fuller-inc&#34; target=&#34;_blank&#34;&gt;S3のファイルをX-Accel-Redirectで配信する&lt;/a&gt;
 を参考にgoで実装してみます&lt;/p&gt;</description>
     </item>
-    
   </channel>
 </rss>
