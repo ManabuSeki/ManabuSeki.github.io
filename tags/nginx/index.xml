@@ -1,33 +1,19 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>nginx on GakuBlog</title>
+    <title>Nginx on GakuBlog</title>
     <link>https://blog.zitaku.net/tags/nginx/</link>
-    <description>Recent content in nginx on GakuBlog</description>
-    <generator>Hugo -- gohugo.io</generator>
+    <description>Recent content in Nginx on GakuBlog</description>
+    <generator>Hugo</generator>
     <language>ja-jp</language>
     <lastBuildDate>Sat, 10 Dec 2022 00:00:00 +0900</lastBuildDate>
     <atom:link href="https://blog.zitaku.net/tags/nginx/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>X-Accel-RedirectとgoでS3ファイルに認証をつけて配信する方法</title>
-      <link>https://blog.zitaku.net/2022/12/11/</link>
+      <link>https://blog.zitaku.net/2022/12/11/index.html/</link>
       <pubDate>Sat, 10 Dec 2022 00:00:00 +0900</pubDate>
-      <guid>https://blog.zitaku.net/2022/12/11/</guid>
-      <description>&lt;p&gt;この記事は &lt;a href=&#34;https://qiita.com/advent-calendar/2022/fuller-inc&#34; target=&#34;_blank&#34;&gt;フラー株式会社 Advent Calendar 2022&lt;/a&gt;
- 11日目の記事です。&lt;br&gt;
-10日目は &lt;a href=&#34;https://qiita.com/nnsnodnb&#34; target=&#34;_blank&#34;&gt;@nnsnodnb&lt;/a&gt;
- さんで &lt;a href=&#34;https://nnsnodnb.hatenablog.jp/entry/circleci-orbs-firebase-app-distribution&#34; target=&#34;_blank&#34;&gt;Firebase App Distribution で配信するための CircleCI Orb を自作した&lt;/a&gt;
- でした。&lt;/p&gt;
-&lt;h2 id=&#34;はじめに&#34;&gt;はじめに&lt;/h2&gt;
-&lt;p&gt;早いもので前回のブログから1年経ってしまいました。(去年も同じこと言ってる)&lt;br&gt;
-毎年のことながらブログを書く前にhugoのアップデートとCIのアップデートにばかり時間を使ってしまいました。&lt;br&gt;
-来年はこれだけで記事がかけるかもしれない&lt;/p&gt;
-&lt;p&gt;さて、今回もとある案件でのお話です。&lt;br&gt;
-今回は静的コンテンツを特定の認証されたユーザーのみに配信するという要件がありました。(よくありますね！)&lt;br&gt;
-かんたんにPrivateなS3バケットのコンテンツを安全に配信できる方法ないかな〜とぼんやり考えていた時にあることを思い出しました。それは2021年のISUCON予選の振り返り会をしている時に、@sora_hさんが「実は認証のみアプリケーションで行い画像の配信はnginxで行えたんですよ〜」という話をしていて「そんなことできるのか！すげぇ〜」と感動したことがあったのです。&lt;br&gt;
-当時はDBにバイナリーで格納されている画像ファイルをエクスポートしてnginxで配布することでDBサーバーへの負荷軽減につながるという話だったのですが、まさかこんな形で業務で使うことになるとはISUCON様様です。&lt;/p&gt;
-&lt;p&gt;今回はマネーフォワードさんのテックブログ&lt;a href=&#34;https://qiita.com/advent-calendar/2022/fuller-inc&#34; target=&#34;_blank&#34;&gt;S3のファイルをX-Accel-Redirectで配信する&lt;/a&gt;
-を参考にgoで実装してみます&lt;/p&gt;</description>
+      <guid>https://blog.zitaku.net/2022/12/11/index.html/</guid>
+      <description>&lt;p&gt;この記事は &lt;a href=&#34;https://qiita.com/advent-calendar/2022/fuller-inc&#34; target=&#34;_blank&#34;&gt;フラー株式会社 Advent Calendar 2022&lt;/a&gt;&#xA; 11日目の記事です。&lt;br&gt;&#xA;10日目は &lt;a href=&#34;https://qiita.com/nnsnodnb&#34; target=&#34;_blank&#34;&gt;@nnsnodnb&lt;/a&gt;&#xA; さんで &lt;a href=&#34;https://nnsnodnb.hatenablog.jp/entry/circleci-orbs-firebase-app-distribution&#34; target=&#34;_blank&#34;&gt;Firebase App Distribution で配信するための CircleCI Orb を自作した&lt;/a&gt;&#xA; でした。&lt;/p&gt;&#xA;&lt;h2 id=&#34;はじめに&#34;&gt;はじめに&lt;/h2&gt;&#xA;&lt;p&gt;早いもので前回のブログから1年経ってしまいました。(去年も同じこと言ってる)&lt;br&gt;&#xA;毎年のことながらブログを書く前にhugoのアップデートとCIのアップデートにばかり時間を使ってしまいました。&lt;br&gt;&#xA;来年はこれだけで記事がかけるかもしれない&lt;/p&gt;&#xA;&lt;p&gt;さて、今回もとある案件でのお話です。&lt;br&gt;&#xA;今回は静的コンテンツを特定の認証されたユーザーのみに配信するという要件がありました。(よくありますね！)&lt;br&gt;&#xA;かんたんにPrivateなS3バケットのコンテンツを安全に配信できる方法ないかな〜とぼんやり考えていた時にあることを思い出しました。それは2021年のISUCON予選の振り返り会をしている時に、@sora_hさんが「実は認証のみアプリケーションで行い画像の配信はnginxで行えたんですよ〜」という話をしていて「そんなことできるのか！すげぇ〜」と感動したことがあったのです。&lt;br&gt;&#xA;当時はDBにバイナリーで格納されている画像ファイルをエクスポートしてnginxで配布することでDBサーバーへの負荷軽減につながるという話だったのですが、まさかこんな形で業務で使うことになるとはISUCON様様です。&lt;/p&gt;&#xA;&lt;p&gt;今回はマネーフォワードさんのテックブログ&lt;a href=&#34;https://qiita.com/advent-calendar/2022/fuller-inc&#34; target=&#34;_blank&#34;&gt;S3のファイルをX-Accel-Redirectで配信する&lt;/a&gt;&#xA;を参考にgoで実装してみます&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>
