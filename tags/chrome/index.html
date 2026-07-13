@@ -27,7 +27,7 @@
 
 <title>GakuBlog</title>
 
-<link rel="alternate" type="application/rss&#43;xml" href="https://blog.zitaku.net/tags/ci/index.xml" title="$.Site.Title" />
+<link rel="alternate" type="application/rss&#43;xml" href="https://blog.zitaku.net/tags/chrome/index.xml" title="$.Site.Title" />
 
 <link rel="stylesheet" href="/scss/site.css" integrity="" media="screen">
 
@@ -52,25 +52,20 @@
     <div class='articles'>
       
 <div class='summaries'>
-  <h1>&ldquo;CI&rdquo; タグのついた記事</h1>
+  <h1>&ldquo;Chrome&rdquo; タグのついた記事</h1>
   <ul class='summary-items'>
     
     <li class='summary-item'>
       <p class='date'>
-        <time datetime=" 2020-12-05T00:00:00&#43;09:00">2020-12-05</time>
+        <time datetime=" 2026-07-12T00:00:00&#43;09:00">2026-07-12</time>
       </p>
-      <h2 class='title'><a href="/2020/12/12/index.html/">自動レビュー依頼のactionを作成しました</a></h2>
-      <p class='body'><p>この記事は <a href="https://adventar.org/calendars/5034" target="_blank">フラー Advent Calendar 2020</a>
- 12日目の記事です。<br>
-11日目はFumio Takeuchiさんで<a href="https://qiita.com/ftaked/items/3cfef676e04b18d20d6e" target="_blank">プログラマ1年目のPR指摘事項を振り返ってみる</a>
-でした。</p>
-<hr>
-<p>前回から一年たってしまいました。古いBlog記事の移行もできてません、ごめんなさい(コピペだけで動くと思ったら動かなかった)<br>
-懺悔はここまで</p>
-<p>弊社は開発にGitHubを利用し、ソースコードの修正はプルリクエスト(以降　PR)をレビューしてもらう文化があります。<br>
-今まではPRを作成し、reviewersを毎回指定していました。</p>
-<p>1年半前まではレビュアーは自分含めて3人しかおらず、毎回同じ人がレビューをしていたので問題ありませんでしたが、喜ばしいことにサーバーサイドエンジニアの入社が続々と。。。<br>
-人数が増えたので固定していたレビューをランダムにすることにしました。</p></p>
+      <h2 class='title'><a href="/2026/07/12/index.html/">Chrome Email Verification Protocolを自宅Kubernetesで試してみた</a></h2>
+      <p class='body'><p>早いもので前回のブログから3年半ほど経ってしまいました。<br>
+ブログを書くたびに「久しぶり」と言っている気がします。</p>
+<p>今回はChromeの <a href="https://developer.chrome.com/blog/email-verification-protocol-origin-trial?hl=ja" target="_blank">Email Verification Protocol Origin Trial</a>
+ を自宅Kubernetes環境にデプロイして、実際のChromeでメールアドレス検証が通るところまで試した話です。</p>
+<p>Chromeのオートフィルでメールアドレスを選択したときに、ブラウザが裏側で検証用のトークンを取得し、サイト側ではそのトークンを検証するという仕組みです。<br>
+まだOrigin Trial中の機能なので、本番利用というより、まずは実際に動かして理解するのが目的です。</p></p>
     </li>
     
   </ul>

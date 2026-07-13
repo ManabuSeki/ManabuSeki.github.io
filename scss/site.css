@@ -648,12 +648,27 @@ kbd {
         width: 32px;
         height: 32px; }
     .article .article-footer .next-article {
+      display: block;
       float: left;
-      max-width: 45%; }
+      max-width: 45%;
+      box-sizing: border-box;
+      overflow-wrap: anywhere;
+      line-height: 1.4; }
     .article .article-footer .prev-article {
+      display: block;
       float: right;
-      max-width: 45%; }
-
+      max-width: 45%;
+      box-sizing: border-box;
+      overflow-wrap: anywhere;
+      line-height: 1.4;
+      text-align: right; }
+    @media screen and (max-width: 640px) {
+      .article .article-footer .next-article,
+      .article .article-footer .prev-article {
+        float: none;
+        max-width: 100%;
+        margin-top: 8px;
+        text-align: left; } }
 .summaries {
   background-color: white;
   padding: 16px;

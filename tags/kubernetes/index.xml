@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Kubernetes on GakuBlog</title>
+    <link>https://blog.zitaku.net/tags/kubernetes/</link>
+    <description>Recent content in Kubernetes on GakuBlog</description>
+    <generator>Hugo</generator>
+    <language>ja-jp</language>
+    <lastBuildDate>Sun, 12 Jul 2026 00:00:00 +0900</lastBuildDate>
+    <atom:link href="https://blog.zitaku.net/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Chrome Email Verification Protocolを自宅Kubernetesで試してみた</title>
+      <link>https://blog.zitaku.net/2026/07/12/index.html/</link>
+      <pubDate>Sun, 12 Jul 2026 00:00:00 +0900</pubDate>
+      <guid>https://blog.zitaku.net/2026/07/12/index.html/</guid>
+      <description>&lt;p&gt;早いもので前回のブログから3年半ほど経ってしまいました。&lt;br&gt;&#xA;ブログを書くたびに「久しぶり」と言っている気がします。&lt;/p&gt;&#xA;&lt;p&gt;今回はChromeの &lt;a href=&#34;https://developer.chrome.com/blog/email-verification-protocol-origin-trial?hl=ja&#34; target=&#34;_blank&#34;&gt;Email Verification Protocol Origin Trial&lt;/a&gt;&#xA; を自宅Kubernetes環境にデプロイして、実際のChromeでメールアドレス検証が通るところまで試した話です。&lt;/p&gt;&#xA;&lt;p&gt;Chromeのオートフィルでメールアドレスを選択したときに、ブラウザが裏側で検証用のトークンを取得し、サイト側ではそのトークンを検証するという仕組みです。&lt;br&gt;&#xA;まだOrigin Trial中の機能なので、本番利用というより、まずは実際に動かして理解するのが目的です。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

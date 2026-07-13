@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  
+<meta property="og:url" content="https://blog.zitaku.net/2026/07/12/index.html/" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Chrome Email Verification Protocolを自宅Kubernetesで試してみた" />
+<meta property="og:description" content="早いもので前回のブログから3年半ほど経ってしまいました。
+ブログを書くたびに「久しぶり」と言っている気がします。
+今回はChromeの Email Verification Protocol Origin Trial
+ を自宅Kubernetes環境にデプロイして、実際のChromeでメールアドレス検証が通るところまで試した話です。
+Chromeのオートフィルでメールアドレスを選択したときに、ブラウザが裏側で検証用のトークンを取得し、サイト側ではそのトークンを検証するという仕組みです。
+まだOrigin Trial中の機能なので、本番利用というより、まずは実際に動かして理解するのが目的です。" />
+
+<meta name="twitter:title" content="Chrome Email Verification Protocolを自宅Kubernetesで試してみた">
+<meta name="twitter:description" content="早いもので前回のブログから3年半ほど経ってしまいました。
+ブログを書くたびに「久しぶり」と言っている気がします。
+今回はChromeの Email Verification Protocol Origin Trial
+ を自宅Kubernetes環境にデプロイして、実際のChromeでメールアドレス検証が通るところまで試した話です。
+Chromeのオートフィルでメールアドレスを選択したときに、ブラウザが裏側で検証用のトークンを取得し、サイト側ではそのトークンを検証するという仕組みです。
+まだOrigin Trial中の機能なので、本番利用というより、まずは実際に動かして理解するのが目的です。">
+
+
+<meta name="twitter:site" content="@Gaku07jp" />
+<meta name="twitter:creator" content="@Gaku07jp" />
+
+
+
+
+
+
+<meta name="twitter:card" content="summary_image">
+<meta property="og:image" content="images/gaku.jpg">
+<meta name="twitter:image" content="images/gaku.jpg">
+
+
+
+
+  
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1N1QDGEHGN"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-1N1QDGEHGN');
+</script>
+
+
+
+<meta charset="utf-8" />
+<meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1' />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="google-site-verification" content="cSbXfNIdFSTypOzc9Y6mpLDQr42wWJH-z8pV5G33CWc" />
+
+<link href="https://fonts.googleapis.com/css?family=Galindo" rel="stylesheet">
+
+<title>Chrome Email Verification Protocolを自宅Kubernetesで試してみた - GakuBlog</title>
+
+
+<link rel="stylesheet" href="/scss/site.css" integrity="" media="screen">
+
+</head>
+
+<body>
+  <header class='header'>
+  <h1><a href='/'>GakuBlog</a></h1>
+  <ul class='service-icons'>
+  <li class='service-icon'><a target="_blank" class='x' href='https://twitter.com/Gaku07jp'><svg width="1200" height="1227" viewBox="0 0 1200 1227" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" fill="white"/>
+</svg>
+</a></li>
+  <li class='service-icon'><a target="_blank" class='github' href='https://github.com/ManabuSeki'><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" height="480" width="480"><path transform="matrix(1.25,0,0,-1.25,0,480)" d="m 336,240.61116 c 0,22.71565 -8.13329,41.27381 -21.57259,55.84104 2.17534,5.2465 9.35329,26.39909 -2.05915,55.06591 0,0 -17.57695,5.59243 -57.59793,-21.32555 -16.75717,4.61232 -34.70851,6.92488 -52.5243,7.00816 -17.81579,-0.0833 -35.74778,-2.38944 -52.47268,-7.00816 -40.05971,26.91798 -57.662482,21.32555 -57.662482,21.32555 C 80.730709,322.8577 87.90221,301.6987 90.077543,296.4522 76.66406,281.87856 68.47267,263.3204 68.47267,240.61116 c 0,-79.72258 48.9547,-97.56327 95.52104,-102.82259 -5.99669,-5.19526 -11.4318,-14.37505 -13.3102,-27.82123 -11.96756,-5.31698 -42.31251,-14.509569 -61.012631,17.29618 0,0 -11.083229,19.98029 -32.139428,21.44726 0,0 -20.455885,0.26906 -1.43301,-12.65183 0,0 13.742688,-6.39318 23.276718,-30.44128 0,0 12.303224,-37.135539 70.630581,-24.547759 0.0904,-17.38587 0.28401,-44.11808 0.28401,-49.06991 l 103.95127,0 c 0,6.85441 0.24529,39.59544 0.24529,67.43589 0,19.410149 -6.70028,32.068399 -14.22036,38.532039 C 286.95494,143.11835 336,160.71561 336,240.62397 Z M 72.003554,139.07617 c -0.458306,-1.03777 -2.097875,-1.34526 -3.58898,-0.63419 -1.523378,0.67903 -2.368983,2.08835 -1.884858,3.12612 0.45185,1.0634 2.091419,1.35807 3.614799,0.65341 1.516923,-0.67903 2.388348,-2.10757 1.859039,-3.13893 z m 8.494775,-9.404 c -1.000525,-0.92246 -2.956389,-0.49326 -4.279663,0.9609 -1.374915,1.45416 -1.626659,3.38877 -0.613224,4.32405 1.032798,0.92246 2.930567,0.48685 4.299027,-0.9609 1.374914,-1.46697 1.639569,-3.38877 0.59386,-4.32405 z m 8.262396,-11.9728 c -1.284545,-0.88402 -3.388873,-0.056 -4.686328,1.79368 -1.284544,1.85133 -1.284544,4.06781 0.02582,4.95824 1.297455,0.88403 3.369508,0.0833 4.686328,-1.74884 1.284543,-1.88336 1.284543,-4.09983 -0.02582,-5.00308 z m 11.328515,-11.58203 c -1.148985,-1.25558 -3.601885,-0.92247 -5.389919,0.80075 -1.833219,1.67837 -2.343163,4.05499 -1.194174,5.31697 1.168354,1.25557 3.627709,0.90965 5.435108,-0.80075 1.820305,-1.67837 2.368985,-4.0678 1.148985,-5.31697 z m 15.6211,-6.726299 c -0.50995,-1.62712 -2.86602,-2.37021 -5.24146,-1.67837 -2.36899,0.71748 -3.92464,2.620059 -3.44051,4.266399 0.49058,1.63993 2.86601,2.41506 5.24791,1.67196 2.36898,-0.71107 3.92464,-2.60083 3.4276,-4.259989 z m 12.70988,-4.40732 c -2.50453,-0.056 -4.53786,1.33245 -4.56368,3.01722 0,1.73603 1.96878,3.138939 4.47977,3.183779 2.49163,0.0481 4.53786,-1.332439 4.53786,-3.036439 0.0516,-1.7104 -1.96232,-3.13893 -4.45395,-3.16456 z m 16.50543,2.01148 c -2.43353,-0.44201 -4.68632,0.58935 -4.99617,2.25491 -0.29692,1.716809 1.46529,3.440019 3.89237,3.882029 2.47872,0.42921 4.69924,-0.57653 5.01553,-2.28053 0.29693,-1.671959 -1.43946,-3.388769 -3.91173,-3.849999 z"/></svg>
+</a></li>
+</ul>
+
+</header>
+
+
+  <div class='main-container'>
+    <div class='articles'>
+      
+<article class='article'>
+  <div class='article-header'>
+    <p class='date'>
+      <time datetime=" 2026-07-12T00:00:00&#43;09:00">2026-07-12</time>
+    </p>
+    <h1><a href="/2026/07/12/index.html/">Chrome Email Verification Protocolを自宅Kubernetesで試してみた</a></h1>
+    <p class="tags">
+      
+      
+      <a href="/tags/chrome/">Chrome</a>
+      
+      
+      <a href="/tags/evp/">EVP</a>
+      
+      
+      <a href="/tags/go/">go</a>
+      
+      
+      <a href="/tags/kubernetes/">Kubernetes</a>
+      
+    </p>
+  </div>
+  <div class='article-body'>
+    <p>早いもので前回のブログから3年半ほど経ってしまいました。<br>
+ブログを書くたびに「久しぶり」と言っている気がします。</p>
+<p>今回はChromeの <a href="https://developer.chrome.com/blog/email-verification-protocol-origin-trial?hl=ja" target="_blank">Email Verification Protocol Origin Trial</a>
+ を自宅Kubernetes環境にデプロイして、実際のChromeでメールアドレス検証が通るところまで試した話です。</p>
+<p>Chromeのオートフィルでメールアドレスを選択したときに、ブラウザが裏側で検証用のトークンを取得し、サイト側ではそのトークンを検証するという仕組みです。<br>
+まだOrigin Trial中の機能なので、本番利用というより、まずは実際に動かして理解するのが目的です。</p>
+<hr>
+<h2 id="email-verification-protocolとは">Email Verification Protocolとは</h2>
+<p>ざっくり言うと、メールアドレスを入力するフォームで、ブラウザが「このメールアドレスはこのユーザーのものです」という検証済みトークンを一緒に送ってくれる仕組みです。</p>
+<p>登場人物は以下の3つです。</p>
+<ul>
+<li><code>RP / verifier</code>: メールアドレスを受け取るサービス側</li>
+<li><code>issuer</code>: メールアドレスを検証済みとして発行する側</li>
+<li><code>browser</code>: Chrome</li>
+</ul>
+<p>フォーム側には通常のemail autocompleteに加えて、hidden inputを用意します。</p>
+
+
+
+
+<figure class="x-code-block">
+    <figcaption class="x-code-block-title">verify form</figcaption>
+    <div class="x-code-block">
+        <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;email-address&#34;</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;email&#34;</span> <span style="color:#a6e22e">autocomplete</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;email&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;token&#34;</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hidden&#34;</span> <span style="color:#a6e22e">autocomplete</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;email-verification-token&#34;</span> <span style="color:#a6e22e">nonce</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;...&#34;</span>&gt;</span></span></code></pre></div>
+    </div>
+</figure>
+
+<p>Chromeでメールアドレスを選択して送信すると、hiddenの<code>token</code>にEVPのトークンが入ります。<br>
+サービス側はそのトークンを検証して、メールアドレスが検証済みかどうかを判断します。</p>
+<h2 id="今回やったこと">今回やったこと</h2>
+<p>今回やったことは以下です。</p>
+<ol>
+<li><code>issuer.zitaku.net</code>でissuerを公開する</li>
+<li><code>rp.zitaku.net</code>でverifierを公開する</li>
+<li>Chrome 150でオートフィルからメールアドレスを選択する</li>
+<li>verifier側で<code>email_verified:true</code>になることを確認する</li>
+</ol>
+<p>検証用のissuerはGoで実装しました。<br>
+ログイン部分はOktaのOIDCを使い、issuerにログイン済みのメールアドレスに対してEVTを発行する形にしています。</p>
+<h2 id="全体の流れ">全体の流れ</h2>
+<p>最終的には以下の流れになります。</p>
+<ol>
+<li>Chromeで<code>https://rp.zitaku.net/</code>を開く</li>
+<li>メールアドレス欄でChromeのオートフィルを選択する</li>
+<li>ChromeがメールドメインのTXTレコードを確認する</li>
+<li>Chromeがissuerのaccounts endpointを確認する</li>
+<li>Chromeがissuerのissuance endpointからEVTを取得する</li>
+<li>Chromeがverifierのnonceを使ってkey binding JWTを作成する</li>
+<li>フォーム送信時に<code>email-address</code>と<code>token</code>が送信される</li>
+<li>verifierがDNS、issuer metadata、JWKS、claim、key bindingを検証する</li>
+</ol>
+<figure><img
+    class="article-image" src="/2026/07/12/mermaid-diagram-2026-07-13-090345.png" alt="EVPのシーケンス図" width="720px"/>
+</figure>
+
+<p>実際に検証が通ったときの画面では、検証ステップごとに以下のような内容を確認できるようにしました。</p>
+<ul>
+<li>フォームからメールアドレスとトークンが送られているか</li>
+<li>EVTとkey binding JWTをパースできるか</li>
+<li>DNSのTXTレコードからissuerを確認できるか</li>
+<li>issuerのJWKSで署名検証できるか</li>
+<li><code>email_verified</code>やemail claimが期待通りか</li>
+<li>key bindingのaudience、nonce、sd_hashが期待通りか</li>
+</ul>
+<h2 id="dnsでissuerを指定する">DNSでissuerを指定する</h2>
+<p>メールドメインからissuerを見つけるためにTXTレコードを設定します。</p>
+
+
+
+
+<figure class="x-code-block">
+    <figcaption class="x-code-block-title">DNS TXT</figcaption>
+    <div class="x-code-block">
+        <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>_email-verification.zitaku.net. TXT &#34;iss=issuer.zitaku.net&#34;</span></span></code></pre></div>
+    </div>
+</figure>
+
+<p>これで<code>gaku@zitaku.net</code>のようなメールアドレスをChromeで選択したときに、issuerとして<code>https://issuer.zitaku.net</code>が使われます。</p>
+<p>また、ChromeのAccounts ValidationでeTLD+1側のwell-knownを見に行くケースがありました。<br>
+今回の場合は以下です。</p>
+
+
+
+
+<figure class="x-code-block">
+    <figcaption class="x-code-block-title">well-known</figcaption>
+    <div class="x-code-block">
+        <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>https://zitaku.net/.well-known/web-identity</span></span></code></pre></div>
+    </div>
+</figure>
+
+<p>最初は<code>issuer.zitaku.net</code>だけを用意していたのですが、Chrome DevToolsのNetworkを見ると<code>zitaku.net</code>側を取りに行っていました。<br>
+そのためGateway側でapex domainの<code>/.well-known/web-identity</code>もissuerにルーティングするようにしました。</p>
+<h2 id="origin-trialが必要だった">Origin Trialが必要だった</h2>
+<p>今回かなりハマったのがOrigin Trialです。<br>
+Chromeのフラグを有効にしているだけでは、<code>autocomplete=&quot;email-verification-token&quot;</code>にトークンが入りませんでした。</p>
+<p>Origin Trialのtokenを取得して、<code>rp.zitaku.net</code>のレスポンスヘッダーに以下を返すようにしました。</p>
+
+
+
+
+<figure class="x-code-block">
+    <figcaption class="x-code-block-title">response header</figcaption>
+    <div class="x-code-block">
+        <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>Origin-Trial: origin-trial-token</span></span></code></pre></div>
+    </div>
+</figure>
+
+<p>これを入れるまでは、フォームを送信したときに以下のように<code>token</code>が空のままでした。</p>
+
+
+
+
+<figure class="x-code-block">
+    <figcaption class="x-code-block-title">bad submit</figcaption>
+    <div class="x-code-block">
+        <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>email-address
+</span></span><span style="display:flex;"><span>gaku@example.com
+</span></span><span style="display:flex;"><span>token</span></span></code></pre></div>
+    </div>
+</figure>
+
+<p>Origin Trial tokenを入れてからは、フォーム送信時にEVTとkey binding JWTが<code>~</code>で連結されたトークンが入るようになりました。</p>
+<h2 id="gmailアカウントでも検証できた">Gmailアカウントでも検証できた</h2>
+<p>今回一番おもしろかったのは、<strong>Gmailアカウントでも検証が通った</strong>ことです。<br>
+<code>zitaku.net</code>のメールアドレスは自分で用意したissuerからEVTを発行していますが、Gmailの場合はGoogleがissuerになります。</p>
+<p>つまり、自分で作ったverifierがGoogleのissuer metadataを見に行き、GoogleのJWKSでEVTの署名を検証し、最終的に<code>email_verified:true</code>まで確認できたということです。</p>
+<p>Googleのissuer metadataは以下のような内容です。</p>
+
+
+
+
+<figure class="x-code-block">
+    <figcaption class="x-code-block-title">Google issuer metadata</figcaption>
+    <div class="x-code-block">
+        <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;issuance_endpoint&#34;</span>: <span style="color:#e6db74">&#34;https://accounts.google.com/gsi/email-verification/issue&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;jwks_uri&#34;</span>: <span style="color:#e6db74">&#34;https://verifiablecredentials-pa.googleapis.com/.well-known/vc-public-jwks&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;signing_alg_values_supported&#34;</span>: [<span style="color:#e6db74">&#34;EdDSA&#34;</span>]
+</span></span><span style="display:flex;"><span>}</span></span></code></pre></div>
+    </div>
+</figure>
+
+<p>GmailアカウントでChromeにログイン済みの状態で、<code>rp.zitaku.net</code>のフォームからGmailアドレスを選択すると、ChromeがGoogleのissuance endpointからEVTを取得してくれました。<br>
+verifier側ではGoogleのJWKSを取得し、EdDSA署名を検証します。</p>
+<p>最初は<code>token</code>が空だったり401になったりしましたが、最終的にはGmailのメールアドレスでも<code>email_verified:true</code>になりました。<br>
+自前issuerだけでなく、Google issuerが発行したトークンも同じverifierで検証できたので、EVPの全体像がかなり理解しやすくなりました。</p>
+<h2 id="oktaの設定でハマった">Oktaの設定でハマった</h2>
+<p>issuer側のログインはOktaのOIDCで行いました。<br>
+最初はログイン時にOktaから<code>400 access_denied</code>が返ってきていました。</p>
+<p>原因はAuthorization Server側にAccess PolicyとRuleがなかったことでした。<br>
+Oktaの画面では以下のような状態です。</p>
+
+
+
+
+<figure class="x-code-block">
+    <figcaption class="x-code-block-title">Okta</figcaption>
+    <div class="x-code-block">
+        <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>No access policies added
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Policies and rules are required for clients to access this resource</span></span></code></pre></div>
+    </div>
+</figure>
+
+<p>対象のclientを許可するPolicyと、Authorization Codeを許可するRuleを追加したところログインできるようになりました。</p>
+<h2 id="デプロイ構成">デプロイ構成</h2>
+<p>デプロイ先は自宅Kubernetesです。<br>
+Goで実装したissuer/verifierをGitLab CIでコンテナイメージ化し、ArgoCDで<code>issuer.zitaku.net</code>と<code>rp.zitaku.net</code>に反映する構成にしました。</p>
+<p>デプロイ周りは今回の主題ではないので詳細は省略しますが、実際のChromeで試すためにTLS、DNS、Origin Trialのレスポンスヘッダーまで含めて外から到達できる状態にしました。</p>
+<h2 id="証明書でハマった">証明書でハマった</h2>
+<p><code>issuer.zitaku.net</code>と<code>rp.zitaku.net</code>は問題なかったのですが、apex domainである<code>zitaku.net</code>でもwell-knownを返す必要が出ました。<br>
+最初はapexの証明書を管理していなかったため、cert-managerでHTTP-01を使って取得するようにしました。</p>
+<p>一度ACME orderがinvalidになったのですが、これはルーター側の80番ポートの向き先が間違っていたのが原因でした。<br>
+ルーティングを直して再発行したら通りました。</p>
+<p><code>curl</code>でHTTP-01のパスがKubernetes側に届いているか確認できる状態にしておくと切り分けが楽でした。</p>
+
+
+
+
+<figure class="x-code-block">
+    <figcaption class="x-code-block-title">probe</figcaption>
+    <div class="x-code-block">
+        <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ curl -I http://zitaku.net/.well-known/acme-challenge/probe
+</span></span><span style="display:flex;"><span>HTTP/1.1 <span style="color:#ae81ff">404</span> Not Found</span></span></code></pre></div>
+    </div>
+</figure>
+
+<p>404であってもKubernetes側から返っていれば、少なくともルーティングは届いています。</p>
+<h2 id="nonceとsessionをredisに保存した">nonceとsessionをRedisに保存した</h2>
+<p>最初の実装ではissuerのsession、OIDC state、verifierのnonceはインメモリでした。<br>
+replicaが1つならこれでも動きます。</p>
+<p>ただしPod再起動や複数replicaを考えると、以下が問題になります。</p>
+<ul>
+<li>issuerにログイン済みかどうかがPodに依存する</li>
+<li>OIDC callbackのstateがPodに依存する</li>
+<li>verifierのnonceがPodに依存する</li>
+<li>issuerの署名鍵が起動ごとに変わる</li>
+</ul>
+<p>署名鍵はSecretから読み込むようにし、session/state/nonceはRedisに保存するようにしました。<br>
+今回の用途では一時データなのでRedisのデータが消えても再ログインや再検証をすれば済みます。</p>
+<p>Redis化後はissuer Podを再起動しても再ログインなしでEVPの発行まで通るようになりました。</p>
+<h2 id="サービス提供者として何が嬉しいか">サービス提供者として何が嬉しいか</h2>
+<p>最初は「これ何に使うんだろう」という気持ちもありました。<br>
+実際に動かしてみると、サービス提供者側のメリットは以下かなと思いました。</p>
+<ul>
+<li>メールアドレスの打ち間違いを減らせる</li>
+<li>メール送信前にブラウザ経由で検証済みか確認できる</li>
+<li>メール認証リンクを踏む手間を減らせる</li>
+<li>捨てアドレスやなりすましに対して追加のシグナルになる</li>
+<li>RP側はメールプロバイダごとのログインを直接実装しなくてよい</li>
+</ul>
+<p>ただしissuerにログイン済みであることが前提なので、そこは思ったより難しいポイントでした。<br>
+Googleアカウントのように普段からログインしているissuerであれば自然ですが、独自issuerの場合は「まずissuerにログインしておく」という導線が必要になります。</p>
+<h2 id="最後に">最後に</h2>
+<p>今回やってみて、EVPはブラウザ、DNS、issuer、verifier、Origin Trial、証明書、Kubernetesの全てが少しずつ関係するので、動くところまで持っていくのは思ったより大変でした。<br>
+特に以下の3つはハマりやすいと思います。</p>
+<ol>
+<li>Origin Trial tokenがないとhidden inputの<code>token</code>に値が入らない</li>
+<li>eTLD+1の<code>/.well-known/web-identity</code>をChromeが見に行くことがある</li>
+<li>nonce/session/signing keyをインメモリにするとPod再起動や複数replicaで困る</li>
+</ol>
+<p>逆にここを越えると、Chromeでメールアドレスを選択して送信するだけで<code>email_verified:true</code>になる体験はなかなか面白いです。</p>
+<p>まだOrigin Trial中なので仕様変更はありそうですが、メール認証のUXを改善する方向としてはかなり期待できそうだなと思いました。</p>
+  </div>
+  <div class='article-footer'>
+
+    
+    <h3>あわせて読みたい</h3>
+    <ul>
+      
+      <li><a href="/2022/12/11/index.html/">X-Accel-RedirectとgoでS3ファイルに認証をつけて配信する方法</a></li>
+      
+    </ul>
+    
+
+    <div class='social-buttons'>
+      <a
+  class='share-button'
+  style='background-image: url("data:image/svg+xml;charset%3DUS-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23FFF%22%20d%3D%22M28%208.557a9.913%209.913%200%200%201-2.828.775%204.93%204.93%200%200%200%202.166-2.725%209.738%209.738%200%200%201-3.13%201.194%204.92%204.92%200%200%200-3.593-1.55%204.924%204.924%200%200%200-4.794%206.049c-4.09-.21-7.72-2.17-10.15-5.15a4.942%204.942%200%200%200-.665%202.477c0%201.71.87%203.214%202.19%204.1a4.968%204.968%200%200%201-2.23-.616v.06c0%202.39%201.7%204.38%203.952%204.83-.414.115-.85.174-1.297.174-.318%200-.626-.03-.928-.086a4.935%204.935%200%200%200%204.6%203.42%209.893%209.893%200%200%201-6.114%202.107c-.398%200-.79-.023-1.175-.068a13.953%2013.953%200%200%200%207.55%202.213c9.056%200%2014.01-7.507%2014.01-14.013%200-.213-.005-.426-.015-.637.96-.695%201.795-1.56%202.455-2.55z%22%2F%3E%3C%2Fsvg%3E"); background-color: rgb(85, 172, 238)'
+     href="https://twitter.com/intent/tweet?text=Chrome%20Email%20Verification%20Protocol%e3%82%92%e8%87%aa%e5%ae%85Kubernetes%e3%81%a7%e8%a9%a6%e3%81%97%e3%81%a6%e3%81%bf%e3%81%9f - GakuBlog https://blog.zitaku.net/2026/07/12/index.html/"
+  target="_blank"
+></a>
+
+      
+<a
+  class='share-button'
+  style='background-image: url("data:image/svg+xml;charset%3DUS-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cg%20fill%3D%22%23FFF%22%3E%3Cpath%20d%3D%22M6.96%208.33h7.328c1.247%200%202.206.366%202.875%201.098.666.733%201.002%201.64%201.002%202.72%200%20.91-.24%201.688-.715%202.336-.318.433-.784.773-1.396%201.023.928.266%201.614.72%202.05%201.367.44.645.66%201.457.66%202.432%200%20.795-.157%201.512-.468%202.146-.314.635-.74%201.14-1.28%201.508-.337.23-.842.396-1.52.502-.9.14-1.498.21-1.79.21H6.958V8.328zm3.877%206.017h1.74c.623%200%201.058-.13%201.302-.382.24-.255.362-.623.362-1.104%200-.44-.123-.79-.366-1.043-.245-.25-.67-.377-1.276-.377h-1.766v2.91zm0%206.027h2.038c.69%200%201.176-.145%201.458-.434.282-.29.425-.68.425-1.168%200-.453-.142-.818-.42-1.092-.28-.277-.77-.414-1.47-.414h-2.03v3.108zM21.213%208.52h3.584v9.58h-3.584z%22%2F%3E%3Ccircle%20cx%3D%2223.005%22%20cy%3D%2221.635%22%20r%3D%222.036%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); background-color: rgb(0, 166, 219)'
+  href="http://b.hatena.ne.jp/entry/s/blog.zitaku.net/2026/07/12/index.html/"
+  target="_blank"
+></a>
+
+      <a
+  class='share-button'
+  style='background-image: url("data:image/svg+xml;charset%3DUS-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20fill%3D%22%23FFF%22%20d%3D%22M17.78%2027.5V17.008h3.522l.527-4.09h-4.05v-2.61c0-1.182.33-1.99%202.023-1.99h2.166V4.66c-.375-.05-1.66-.16-3.155-.16-3.123%200-5.26%201.905-5.26%205.405v3.016h-3.53v4.09h3.53V27.5h4.223z%22%2F%3E%3C%2Fsvg%3E"); background-color: rgb(59, 89, 152)'
+   href="https://www.facebook.com/share.php?u=https://blog.zitaku.net/2026/07/12/index.html/"
+  target="_blank"
+></a>
+
+
+    </div>
+
+    
+    
+    <a class="prev-article" href="/2022/12/11/index.html/">X-Accel-RedirectとgoでS3ファイルに認証をつけて配信する方法 » </a>
+    
+  </div>
+</article>
+
+    </div>
+
+    <div class='asides'>
+  <aside class='aside'>
+    <h2>Author</h2>
+    <div style='text-align:center'>
+      <img class='profile_img' alt='筆者のプロフィール写真' src='/images/profile.png'>
+    </div>
+    <h3>Manabu Seki (@Gaku07jp)</h3>
+  </aside>
+
+  <aside class='aside'>
+    <h2>Recent Articles</h2>
+    <ol class='recent-articles'>
+      
+      <li class='recent-article'>
+        <p class='recent-article-date'>
+          <time datetime="2026-07-12T00:00:00&#43;09:00">2026-07-12</time>
+        </p>
+        <p class='recent-article-title'><a href="/2026/07/12/index.html/">Chrome Email Verification Protocolを自宅Kubernetesで試してみた</a></p>
+      </li>
+      
+      <li class='recent-article'>
+        <p class='recent-article-date'>
+          <time datetime="2022-12-10T00:00:00&#43;09:00">2022-12-10</time>
+        </p>
+        <p class='recent-article-title'><a href="/2022/12/11/index.html/">X-Accel-RedirectとgoでS3ファイルに認証をつけて配信する方法</a></p>
+      </li>
+      
+      <li class='recent-article'>
+        <p class='recent-article-date'>
+          <time datetime="2021-12-22T00:00:00&#43;09:00">2021-12-22</time>
+        </p>
+        <p class='recent-article-title'><a href="/2021/12/22/index.html/">CloudFormationのパラメータ管理をjsonにした話</a></p>
+      </li>
+      
+      <li class='recent-article'>
+        <p class='recent-article-date'>
+          <time datetime="2020-12-05T00:00:00&#43;09:00">2020-12-05</time>
+        </p>
+        <p class='recent-article-title'><a href="/2020/12/12/index.html/">自動レビュー依頼のactionを作成しました</a></p>
+      </li>
+      
+      <li class='recent-article'>
+        <p class='recent-article-date'>
+          <time datetime="2019-12-13T00:00:00&#43;09:00">2019-12-13</time>
+        </p>
+        <p class='recent-article-title'><a href="/2019/12/13/index.html/">Blogをhugoに移行しました</a></p>
+      </li>
+      
+    </ol>
+  </aside>
+
+  <aside class='aside'>
+    <h2>Tags</h2>
+    <ol class='category-items'>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/aws/"> aws <small>(2)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/go/"> go <small>(2)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/chrome/"> chrome <small>(1)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/ci/"> ci <small>(1)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/evp/"> evp <small>(1)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/github/"> github <small>(1)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/hugo/"> hugo <small>(1)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/kubernetes/"> kubernetes <small>(1)</small></a>
+      </li>
+      
+      
+      <li class='articles-item'>
+        <a href="/tags/nginx/"> nginx <small>(1)</small></a>
+      </li>
+      
+    </ol>
+  </aside>
+
+  <aside class='aside'>
+    <h2>By Year</h2>
+    <ol class='category-items'>
+      
+      <li class='articles-item'><a href="/2026/">2026 <small>(1)</small></a></li>
+      
+      <li class='articles-item'><a href="/2022/">2022 <small>(1)</small></a></li>
+      
+      <li class='articles-item'><a href="/2021/">2021 <small>(1)</small></a></li>
+      
+      <li class='articles-item'><a href="/2020/">2020 <small>(1)</small></a></li>
+      
+      <li class='articles-item'><a href="/2019/">2019 <small>(1)</small></a></li>
+      
+    </ol>
+  </aside>
+</div>
+
+  </div>
+
+  <footer class='footer'>
+  <ul class='service-icons'>
+  <li class='service-icon'><a target="_blank" class='x' href='https://twitter.com/Gaku07jp'><svg width="1200" height="1227" viewBox="0 0 1200 1227" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" fill="white"/>
+</svg>
+</a></li>
+  <li class='service-icon'><a target="_blank" class='github' href='https://github.com/ManabuSeki'><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" height="480" width="480"><path transform="matrix(1.25,0,0,-1.25,0,480)" d="m 336,240.61116 c 0,22.71565 -8.13329,41.27381 -21.57259,55.84104 2.17534,5.2465 9.35329,26.39909 -2.05915,55.06591 0,0 -17.57695,5.59243 -57.59793,-21.32555 -16.75717,4.61232 -34.70851,6.92488 -52.5243,7.00816 -17.81579,-0.0833 -35.74778,-2.38944 -52.47268,-7.00816 -40.05971,26.91798 -57.662482,21.32555 -57.662482,21.32555 C 80.730709,322.8577 87.90221,301.6987 90.077543,296.4522 76.66406,281.87856 68.47267,263.3204 68.47267,240.61116 c 0,-79.72258 48.9547,-97.56327 95.52104,-102.82259 -5.99669,-5.19526 -11.4318,-14.37505 -13.3102,-27.82123 -11.96756,-5.31698 -42.31251,-14.509569 -61.012631,17.29618 0,0 -11.083229,19.98029 -32.139428,21.44726 0,0 -20.455885,0.26906 -1.43301,-12.65183 0,0 13.742688,-6.39318 23.276718,-30.44128 0,0 12.303224,-37.135539 70.630581,-24.547759 0.0904,-17.38587 0.28401,-44.11808 0.28401,-49.06991 l 103.95127,0 c 0,6.85441 0.24529,39.59544 0.24529,67.43589 0,19.410149 -6.70028,32.068399 -14.22036,38.532039 C 286.95494,143.11835 336,160.71561 336,240.62397 Z M 72.003554,139.07617 c -0.458306,-1.03777 -2.097875,-1.34526 -3.58898,-0.63419 -1.523378,0.67903 -2.368983,2.08835 -1.884858,3.12612 0.45185,1.0634 2.091419,1.35807 3.614799,0.65341 1.516923,-0.67903 2.388348,-2.10757 1.859039,-3.13893 z m 8.494775,-9.404 c -1.000525,-0.92246 -2.956389,-0.49326 -4.279663,0.9609 -1.374915,1.45416 -1.626659,3.38877 -0.613224,4.32405 1.032798,0.92246 2.930567,0.48685 4.299027,-0.9609 1.374914,-1.46697 1.639569,-3.38877 0.59386,-4.32405 z m 8.262396,-11.9728 c -1.284545,-0.88402 -3.388873,-0.056 -4.686328,1.79368 -1.284544,1.85133 -1.284544,4.06781 0.02582,4.95824 1.297455,0.88403 3.369508,0.0833 4.686328,-1.74884 1.284543,-1.88336 1.284543,-4.09983 -0.02582,-5.00308 z m 11.328515,-11.58203 c -1.148985,-1.25558 -3.601885,-0.92247 -5.389919,0.80075 -1.833219,1.67837 -2.343163,4.05499 -1.194174,5.31697 1.168354,1.25557 3.627709,0.90965 5.435108,-0.80075 1.820305,-1.67837 2.368985,-4.0678 1.148985,-5.31697 z m 15.6211,-6.726299 c -0.50995,-1.62712 -2.86602,-2.37021 -5.24146,-1.67837 -2.36899,0.71748 -3.92464,2.620059 -3.44051,4.266399 0.49058,1.63993 2.86601,2.41506 5.24791,1.67196 2.36898,-0.71107 3.92464,-2.60083 3.4276,-4.259989 z m 12.70988,-4.40732 c -2.50453,-0.056 -4.53786,1.33245 -4.56368,3.01722 0,1.73603 1.96878,3.138939 4.47977,3.183779 2.49163,0.0481 4.53786,-1.332439 4.53786,-3.036439 0.0516,-1.7104 -1.96232,-3.13893 -4.45395,-3.16456 z m 16.50543,2.01148 c -2.43353,-0.44201 -4.68632,0.58935 -4.99617,2.25491 -0.29692,1.716809 1.46529,3.440019 3.89237,3.882029 2.47872,0.42921 4.69924,-0.57653 5.01553,-2.28053 0.29693,-1.671959 -1.43946,-3.388769 -3.91173,-3.849999 z"/></svg>
+</a></li>
+</ul>
+
+</footer>
+
+</body>
+
+</html>
